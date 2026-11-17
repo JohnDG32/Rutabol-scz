@@ -8,7 +8,6 @@ Aplicación educativa para explorar un catálogo de líneas de micros de Santa C
 
 - Clases 1–2: arquitectura cliente-servidor y primera aplicación Next.js.
 - Clase 3: fundamentos de Docker/Apache (independientes del proyecto; no son requisito para ejecutar esta aplicación).
-- Clases 4–5: TypeScript, objetos, arreglos, funciones y componentes reutilizables.
 - Clase 6: API REST NestJS con módulos, controladores y servicios.
 - Clase 7: integración Next.js ↔ NestJS con `fetch`, CORS, GET/POST/PATCH/DELETE, estados de carga y errores.
 - **No implementado aún (Clase 8):** PostgreSQL, sesiones, cookies, login, autorización, Docker Compose de base de datos.
@@ -87,32 +86,5 @@ curl -i -X DELETE http://localhost:3001/api/micros/1
 
 Respuestas típicas: `200` lectura/edición, `201` creación, `204` eliminación, `400` validación, `404` inexistente, `409` placa o interno duplicado.
 
-## Actividades sugeridas para estudiantes
 
-1. Identificar Controller, Service, DTO y componentes de Next.js.
-2. Crear un micro y comprobarlo en la tabla.
-3. Editar el estado a MANTENIMIENTO y verificar la respuesta.
-4. Intentar registrar una placa repetida y explicar el error 409.
-5. Detener NestJS y observar el error de conexión en el frontend.
-6. Reiniciar NestJS y explicar por qué se pierden los cambios.
 
-## Preparación para Clase 8
-
-- Reemplazar arreglos de `LineasService` y `MicrosService` por consultas a PostgreSQL.
-- Crear tablas `lineas`, `micros`, `usuarios` con claves foráneas.
-- Agregar Docker Compose con volumen persistente para PostgreSQL.
-- Incorporar login, sesiones y cookies HTTP-only; proteger POST/PATCH/DELETE.
-- Configurar CORS con credenciales para cookies y validar autorización en NestJS.
-- Conservar las mismas rutas REST para evitar reescribir el frontend.
-
-## GitHub
-
-```bash
-git init
-git add .
-git commit -m "Clase 7: catalogo de lineas y CRUD de micros"
-```
-
-No subir `node_modules`, `.env`, `.env.local` ni secretos. El `.gitignore` de la raíz ya los excluye.
-
-**Nota:** este es un ejercicio académico; no representa un registro oficial del transporte público.
