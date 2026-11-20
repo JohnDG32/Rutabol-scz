@@ -1,3 +1,4 @@
+
 :root {
   font-family: Arial, Helvetica, sans-serif;
   color: #152b3d;
@@ -37,6 +38,7 @@ button {
   margin: auto;
   padding: 0 22px;
 }
+
 
 .cabecera {
   background: white;
@@ -88,7 +90,6 @@ button {
   font-weight: 600;
   color: #435668;
 }
-
 
 
 .hero {
@@ -274,7 +275,6 @@ button {
 }
 
 
-
 .tablaWrap {
   overflow: auto;
   background: white;
@@ -329,6 +329,7 @@ tr:last-child td {
   color: #991b1b;
 }
 
+
 .acciones {
   white-space: nowrap;
 }
@@ -351,6 +352,7 @@ tr:last-child td {
   text-align: center;
   color: #64748b;
 }
+
 
 .formularioSeccion {
   display: grid;
@@ -387,6 +389,7 @@ tr:last-child td {
   gap: 10px;
 }
 
+
 .alerta {
   border-radius: 10px;
   padding: 14px;
@@ -411,12 +414,15 @@ tr:last-child td {
   color: inherit;
 }
 
+
+
 footer {
   border-top: 1px solid #dde7ec;
   padding: 25px 0;
   color: #738390;
   font-size: 12px;
 }
+
 
 
 @media (max-width: 950px) {
@@ -428,6 +434,8 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+
 
 @media (max-width: 600px) {
   .nav nav {
@@ -461,3 +469,12 @@ footer {
     flex-direction: column;
   }
 }
+
+/* Acceso administrativo - Nuevo */
+.accesoSeccion { display:grid; grid-template-columns:1fr 1.2fr; gap:30px; align-items:start; }
+.panelAcceso { background:white; padding:24px; border:1px solid #e1e8ec; border-radius:15px; display:flex; flex-direction:column; gap:12px; }
+.panelAcceso label {font-size:13px; font-weight:700;}
+.panelAcceso input { padding:12px; border:1px solid #d5e0e6; border-radius:9px; font:inherit; }
+.panelAcceso button {align-self:flex-start;}
+.mensajeError {color:#991b1b;}
+@media(max-width:950px){.accesoSeccion{grid-template-columns:1fr;}}

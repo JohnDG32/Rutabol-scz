@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Micros SCZ | Proyecto académico',
+  title: 'Micros SCZ | Tecnología Web I',
   description: 'Catálogo de líneas y gestión de micros con Next.js y NestJS.',
 };
 

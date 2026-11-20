@@ -17,4 +17,6 @@ export interface Micro {
   lineaId: number;
 }
 
+export interface Usuario { id: number; username: string; rol: 'ADMIN' }
+
 export type MicroInput = Omit<Micro, 'id'>;

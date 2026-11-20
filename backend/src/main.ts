@@ -1,20 +1,42 @@
 import 'reflect-metadata';
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import session = require('express-session');
+import connectPgSimple = require('connect-pg-simple');
 import { AppModule } from './app.module';
+import { DatabaseService } from './database/database.service';
 
 async function bootstrap() {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret || secret.length < 32) throw new Error('SESSION_SECRET debe tener al menos 32 caracteres');
+
   const app = await NestFactory.create(AppModule);
+  const database = app.get(DatabaseService);
+  await database.query('SELECT 1');
+
   app.setGlobalPrefix('api');
   app.enableCors({
     origin: process.env.FRONTEND_ORIGIN || 'http://localhost:3000',
+    credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   });
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
+
+  const PgStore = connectPgSimple(session);
+  app.use(session({
+    name: 'micros.sid',
+    secret,
+    resave: false,
+    saveUninitialized: false,
+    store: new PgStore({
+    pool: database.getPool(),
+    createTableIfMissing: true
+    }),
+    cookie: { httpOnly: true, sameSite: 'lax', secure: false, maxAge: 60 * 60 * 1000 },
   }));
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   await app.listen(Number(process.env.PORT) || 3001);
+  console.log('API Micros SCZ disponible en http://localhost:3001/api');
 }
-bootstrap();
+bootstrap().catch(err => { console.error(err); process.exit(1); });

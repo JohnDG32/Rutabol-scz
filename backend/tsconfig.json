@@ -1,4 +1,3 @@
-
 {
   "compilerOptions": {
     "module": "commonjs",
@@ -9,7 +8,6 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2022",
     "sourceMap": true,
-    "rootDir": "./src",
     "outDir": "./dist",
     "incremental": true,
     "skipLibCheck": true,
@@ -17,6 +15,14 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true
-  }
+    "noFallthroughCasesInSwitch": true,
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

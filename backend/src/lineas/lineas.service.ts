@@ -1,19 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { DatabaseService } from '../database/database.service';
 import { Linea } from './linea.interface';
 
 @Injectable()
 export class LineasService {
-  private readonly lineas: Linea[] = [
-    { id: 1, nombre: 'Línea 47 Norte', zona: 'Zona norte', descripcion: 'Micro Chevere', color: '#0f766e' },
-    { id: 2, nombre: 'Línea 55 Centro', zona: 'Zona central', descripcion: 'Siempre en servicio', color: '#2563eb' },
-    { id: 3, nombre: 'Línea 10 Sur', zona: 'Zona sur', descripcion: 'Voy a la Zona roja de la ciudad', color: '#c2410c' },
-    { id: 4, nombre: 'Línea 40 Este', zona: 'Zona este', descripcion: 'Viva la lujan', color: '#7c3aed' },
-  ];
+  constructor(private readonly db: DatabaseService) {}
 
-  findAll(): Linea[] { return this.lineas; }
-  findOne(id: number): Linea {
-    const linea = this.lineas.find((item) => item.id === id);
-    if (!linea) throw new NotFoundException('La línea no existe');
-    return linea;
+  findAll(): Promise<Linea[]> {
+    return this.db.query<Linea>('SELECT id, nombre, zona, descripcion, color FROM lineas ORDER BY id');
+  }
+
+  async findOne(id: number): Promise<Linea> {
+    const rows = await this.db.query<Linea>(
+      'SELECT id, nombre, zona, descripcion, color FROM lineas WHERE id = $1', [id]
+    );
+    if (!rows[0]) throw new NotFoundException('La línea no existe');
+    return rows[0];
   }
 }

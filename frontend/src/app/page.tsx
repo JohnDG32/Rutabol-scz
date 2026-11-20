@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
-import type { EstadoMicro, Linea, Micro, MicroInput } from '@/lib/types';
+import type { EstadoMicro, Linea, Micro, MicroInput, Usuario } from '@/lib/types';
 
 const inicial: MicroInput = { placa: '', interno: '', capacidad: 30, estado: 'ACTIVO', lineaId: 1 };
 const estados: EstadoMicro[] = ['ACTIVO', 'MANTENIMIENTO', 'INACTIVO'];
@@ -18,6 +18,13 @@ export default function Home() {
   const [editando, setEditando] = useState<number | null>(null);
   const [form, setForm] = useState<MicroInput>(inicial);
   const [guardando, setGuardando] = useState(false);
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [revisandoSesion, setRevisandoSesion] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorLogin, setErrorLogin] = useState('');
+  const [procesandoLogin, setProcesandoLogin] = useState(false);
+
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -35,6 +42,34 @@ export default function Home() {
   }, []);
 
   useEffect(() => { void cargar(); }, [cargar]);
+  useEffect(() => {
+    api.usuarioActual().then(setUsuario).catch(() => setUsuario(null)).finally(() => setRevisandoSesion(false));
+  }, []);
+
+  async function iniciarSesion(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorLogin('');
+    setProcesandoLogin(true);
+    try {
+      const datos = await api.login(username, password);
+      setUsuario(datos);
+      setPassword('');
+      setAviso('Sesión iniciada correctamente.');
+    } catch (e) {
+      setErrorLogin(e instanceof Error ? e.message : 'No fue posible iniciar sesión');
+    } finally { setProcesandoLogin(false); }
+  }
+
+  async function cerrarSesion() {
+    setError('');
+    try {
+      await api.logout();
+      setUsuario(null);
+      setAviso('Sesión finalizada.');
+      cancelar();
+    } catch (e) { setError(e instanceof Error ? e.message : 'No fue posible cerrar sesión'); }
+  }
+
 
   const microsFiltrados = useMemo(() => micros.filter((m) => {
     const coincideLinea = filtro === 'todas' || m.lineaId === Number(filtro);
@@ -43,6 +78,7 @@ export default function Home() {
   }), [micros, filtro, busqueda]);
 
   function editar(m: Micro) {
+    if (!usuario) return;
     setEditando(m.id);
     setForm({ placa: m.placa, interno: m.interno, capacidad: m.capacidad, estado: m.estado, lineaId: m.lineaId });
     setAviso('');
@@ -56,6 +92,7 @@ export default function Home() {
 
   async function guardar(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!usuario) { setError('Debe iniciar sesión para modificar los datos.'); return; }
     setError('');
     setAviso('');
     setGuardando(true);
@@ -77,7 +114,8 @@ export default function Home() {
   }
 
   async function eliminar(id: number) {
-    if (!window.confirm('¿Eliminar este micro de demostración?')) return;
+    if (!usuario) return;
+    if (!window.confirm('¿Eliminar este micro?')) return;
     setError('');
     setAviso('');
     try {
@@ -94,18 +132,18 @@ export default function Home() {
     <main>
       <header className="cabecera">
         <div className="contenedor nav">
-          <div className="marca"><span className="simbolo">M</span><div><strong>RUTABOL - SCZ</strong><small>Sistema de gestión de micros</small></div></div>
-          <nav><a href="#lineas">Líneas</a><a href="#micros">Micros</a><a href="#formulario">Registrar</a></nav>
+          <div className="marca"><span className="simbolo">M</span><div><strong>Micros SCZ</strong><small>Tecnología Web I | Clase 8</small></div></div>
+          <nav><a href="#lineas">Líneas</a><a href="#micros">Micros</a><a href="#acceso">Acceso</a></nav>
         </div>
       </header>
 
       <section className="hero">
         <div className="contenedor">
-          <div className="etiqueta">Rutabol-SCZ</div>
+          <div className="etiqueta">NEXT.JS + NESTJS | API REST</div>
           <h1>Catálogo de líneas de micros <span>de Santa Cruz</span></h1>
-          <p>Ver lineas de Micros</p>
-          <div className="heroacciones"><a className="boton principal" href="#lineas">Explorar líneas</a><a className="boton claro" href="#formulario">Registrar micro</a></div>
-          <p className="advertencia">El sistema de de Micros mas fachero de scz</p>
+          <p>Explora líneas de demostración y administra micros mediante un CRUD conectado a NestJS.</p>
+          <div className="heroacciones"><a className="boton principal" href="#lineas">Explorar líneas</a><a className="boton claro" href="#acceso">Acceso administrativo</a></div>
+          <p className="advertencia">Los nombres y recorridos son ficticios; no representan información oficial de transporte.</p>
         </div>
       </section>
 
@@ -114,11 +152,11 @@ export default function Home() {
         {aviso && <div className="alerta exito" role="status">{aviso}</div>}
 
         <section id="lineas" className="seccion">
-          <div className="seccionTitulo"><div><span className="sobre">CATÁLOGO PRINCIPAL</span><h2>Líneas disponibles</h2><p>Nuestras líneas de transporte</p></div><span className="contador">{lineas.length} líneas</span></div>
+          <div className="seccionTitulo"><div><span className="sobre">CATÁLOGO PRINCIPAL</span><h2>Líneas disponibles</h2><p>Información simulada recibida desde el endpoint GET /api/lineas.</p></div><span className="contador">{lineas.length} líneas</span></div>
           <div className="tarjetas">
             {lineas.map((linea) => (
               <article className="tarjeta" key={linea.id} style={{ borderTopColor: linea.color }}>
-                <div className="tarjetaIcono" style={{ backgroundColor: linea.color }}></div>
+                <div className="tarjetaIcono" style={{ backgroundColor: linea.color }}>L{linea.id}</div>
                 <div className="tarjetaInfo"><h3>{linea.nombre}</h3><span className="zona">{linea.zona}</span><p>{linea.descripcion}</p><span className="chip">{micros.filter(m => m.lineaId === linea.id).length} micros registrados</span></div>
               </article>
             ))}
@@ -127,7 +165,7 @@ export default function Home() {
         </section>
 
         <section id="micros" className="seccion">
-          <div className="seccionTitulo"><div><span className="sobre">GESTIÓN CRUD</span><h2>Registro de micros</h2><p>Consulta, edita y elimina unidades conectadas a la API.</p></div><span className="contador">{microsFiltrados.length} resultados</span></div>
+          <div className="seccionTitulo"><div><span className="sobre">GESTIÓN CRUD</span><h2>Registro de micros</h2><p>Consulta unidades en PostgreSQL. El acceso administrativo permite registrarlas, editarlas y eliminarlas.</p></div><span className="contador">{microsFiltrados.length} resultados</span></div>
           <div className="filtros">
             <input aria-label="Buscar por placa o interno" placeholder="Buscar por placa o número interno" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
             <select aria-label="Filtrar por línea" value={filtro} onChange={e => setFiltro(e.target.value)}>
@@ -136,14 +174,37 @@ export default function Home() {
             </select>
             <button className="boton secundario" onClick={() => void cargar()}>Actualizar</button>
           </div>
-          <div className="tablaWrap"><table><thead><tr><th>Placa</th><th>Interno</th><th>Línea</th><th>Capacidad</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
-            {microsFiltrados.map(m => <tr key={m.id}><td><strong>{m.placa}</strong></td><td>{m.interno}</td><td>{lineas.find(l => l.id === m.lineaId)?.nombre ?? 'Sin línea'}</td><td>{m.capacidad}</td><td><span className={`estado ${m.estado.toLowerCase()}`}>{m.estado}</span></td><td className="acciones"><button onClick={() => editar(m)}>Editar</button><button className="peligro" onClick={() => void eliminar(m.id)}>Eliminar</button></td></tr>)}
-            {!microsFiltrados.length && <tr><td colSpan={6} className="vacio">No hay micros para mostrar.</td></tr>}
+          <div className="tablaWrap"><table><thead><tr><th>Placa</th><th>Interno</th><th>Línea</th><th>Capacidad</th><th>Estado</th>{usuario && <th>Acciones</th>}</tr></thead><tbody>
+            {microsFiltrados.map(m => <tr key={m.id}><td><strong>{m.placa}</strong></td><td>{m.interno}</td><td>{lineas.find(l => l.id === m.lineaId)?.nombre ?? 'Sin línea'}</td><td>{m.capacidad}</td><td><span className={`estado ${m.estado.toLowerCase()}`}>{m.estado}</span></td>{usuario && <td className="acciones"><button onClick={() => editar(m)}>Editar</button><button className="peligro" onClick={() => void eliminar(m.id)}>Eliminar</button></td>}</tr>)}
+            {!microsFiltrados.length && <tr><td colSpan={usuario ? 6 : 5} className="vacio">No hay micros para mostrar.</td></tr>}
           </tbody></table></div>
         </section>
 
-        <section id="formulario" className="seccion formularioSeccion">
-          <div><span className="sobre">FORMULARIO CONECTADO</span><h2>{editando === null ? 'Registrar nuevo micro' : `Editar micro #${editando}`}</h2><p>El formulario envía datos JSON a NestJS mediante POST o PATCH. Los cambios permanecen en memoria hasta reiniciar el backend.</p></div>
+        <section id="acceso" className="seccion accesoSeccion">
+          <div>
+            <span className="sobre">AUTENTICACIÓN DE LA CLASE 8</span>
+            <h2>Acceso administrativo</h2>
+            <p>El catálogo es público, pero registrar, editar y eliminar micros requiere una sesión iniciada.</p>
+          </div>
+          {revisandoSesion ? <p>Comprobando sesión...</p> : usuario ? (
+            <div className="panelAcceso">
+              <p>Sesión iniciada: <strong>{usuario.username}</strong></p>
+              <button type="button" className="boton secundario" onClick={() => void cerrarSesion()}>Cerrar sesión</button>
+            </div>
+          ) : (
+            <form className="panelAcceso" onSubmit={(e) => void iniciarSesion(e)}>
+              <label htmlFor="login-username">Usuario</label>
+              <input id="login-username" autoComplete="username" required value={username} onChange={e => setUsername(e.target.value)} />
+              <label htmlFor="login-password">Contraseña</label>
+              <input id="login-password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} />
+              {errorLogin && <p className="mensajeError" role="alert">{errorLogin}</p>}
+              <button className="boton principal" type="submit" disabled={procesandoLogin}>{procesandoLogin ? 'Ingresando...' : 'Iniciar sesión'}</button>
+            </form>
+          )}
+        </section>
+
+        {usuario && <section id="formulario" className="seccion formularioSeccion">
+          <div><span className="sobre">FORMULARIO CONECTADO</span><h2>{editando === null ? 'Registrar nuevo micro' : `Editar micro #${editando}`}</h2><p>El formulario envía datos JSON a NestJS mediante POST o PATCH. Los datos se guardan en PostgreSQL y permanecen aunque reinicies NestJS.</p></div>
           <form className="formulario" onSubmit={(e) => void guardar(e)}>
             <label>Placa<input required maxLength={20} value={form.placa} onChange={e => setForm({...form, placa:e.target.value})} placeholder="SCZ-1234"/></label>
             <label>Número interno<input required maxLength={20} value={form.interno} onChange={e => setForm({...form, interno:e.target.value})} placeholder="M-07"/></label>
@@ -152,8 +213,8 @@ export default function Home() {
             <label className="ancho">Línea<select required value={form.lineaId} onChange={e => setForm({...form, lineaId:Number(e.target.value)})}>{lineas.map(l => <option key={l.id} value={l.id}>{l.nombre}</option>)}</select></label>
             <div className="formAcciones"><button className="boton principal" type="submit" disabled={guardando || !lineas.length}>{guardando ? 'Guardando...' : editando === null ? 'Registrar micro' : 'Guardar cambios'}</button>{editando !== null && <button type="button" className="boton secundario" onClick={cancelar}>Cancelar</button>}</div>
           </form>
-        </section>
-        <footer>RUTABOL - SCZ</footer>
+        </section>}
+        <footer>Rutabol SCZ</footer>
       </div>
     </main>
   );

@@ -1,3 +1,4 @@
+import type { Usuario } from './types';
 import { Linea, Micro, MicroInput } from './types';
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -8,6 +9,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     response = await fetch(`${BASE}${path}`, {
       ...options,
       cache: 'no-store',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', ...options?.headers },
     });
   } catch {
@@ -31,4 +33,7 @@ export const api = {
   actualizarMicro: (id: number, data: MicroInput) =>
     request<Micro>(`/micros/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   eliminarMicro: (id: number) => request<void>(`/micros/${id}`, { method: 'DELETE' }),
+  login: (username: string, password: string) => request<Usuario>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  usuarioActual: () => request<Usuario>('/auth/me'),
+  logout: () => request<{ mensaje: string }>('/auth/logout', { method: 'POST' }),
 };

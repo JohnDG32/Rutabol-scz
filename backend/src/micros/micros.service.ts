@@ -1,57 +1,66 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { DatabaseService } from '../database/database.service';
 import { LineasService } from '../lineas/lineas.service';
 import { CreateMicroDto } from './dto/create-micro.dto';
 import { UpdateMicroDto } from './dto/update-micro.dto';
 import { Micro } from './micro.interface';
 
+const COLUMNAS = 'id, placa, interno, capacidad, estado, linea_id AS "lineaId"';
+
 @Injectable()
 export class MicrosService {
-  private micros: Micro[] = [
-    { id: 1, placa: 'SCZ-001', interno: '101', capacidad: 32, estado: 'ACTIVO', lineaId: 1 },
-    { id: 2, placa: 'SCZ-002', interno: '202', capacidad: 38, estado: 'MANTENIMIENTO', lineaId: 2 },
-    { id: 3, placa: 'SCZ-003', interno: '303', capacidad: 30, estado: 'ACTIVO', lineaId: 3 },
-  ];
-  private nextId = 4;
+  constructor(private readonly db: DatabaseService, private readonly lineas: LineasService) {}
 
-  constructor(private readonly lineas: LineasService) {}
-
-  findAll(): Micro[] { return [...this.micros]; }
-  findOne(id: number): Micro {
-    const micro = this.micros.find((item) => item.id === id);
-    if (!micro) throw new NotFoundException('El micro no existe');
-    return micro;
+  findAll(): Promise<Micro[]> {
+    return this.db.query<Micro>(`SELECT ${COLUMNAS} FROM micros ORDER BY id`);
   }
 
-  private verificarDuplicados(placa: string, interno: string, ignorarId?: number) {
-    if (this.micros.some((m) => m.id !== ignorarId &&
-        (m.placa.toUpperCase() === placa.toUpperCase() || m.interno.toUpperCase() === interno.toUpperCase()))) {
-      throw new ConflictException('La placa o el número interno ya está registrado');
-    }
+  async findOne(id: number): Promise<Micro> {
+    const rows = await this.db.query<Micro>(`SELECT ${COLUMNAS} FROM micros WHERE id = $1`, [id]);
+    if (!rows[0]) throw new NotFoundException('El micro no existe');
+    return rows[0];
   }
 
-  create(dto: CreateMicroDto): Micro {
-    this.lineas.findOne(dto.lineaId);
-    const placa = dto.placa.trim().toUpperCase();
-    const interno = dto.interno.trim();
-    this.verificarDuplicados(placa, interno);
-    const micro: Micro = { ...dto, placa, interno, id: this.nextId++ };
-    this.micros.push(micro);
-    return micro;
+  private mapearError(error: unknown): never {
+    const codigo = (error as { code?: string })?.code;
+    if (codigo === '23505') throw new ConflictException('La placa o el interno ya están registrados');
+    if (codigo === '23503') throw new BadRequestException('La línea seleccionada no existe');
+    if (codigo === '23514') throw new BadRequestException('Los valores del micro son inválidos');
+    throw error;
   }
 
-  update(id: number, dto: UpdateMicroDto): Micro {
-    const actual = this.findOne(id);
-    if (dto.lineaId !== undefined) this.lineas.findOne(dto.lineaId);
-    const placa = (dto.placa ?? actual.placa).trim().toUpperCase();
-    const interno = (dto.interno ?? actual.interno).trim();
-    this.verificarDuplicados(placa, interno, id);
-    const actualizado = { ...actual, ...dto, placa, interno };
-    this.micros = this.micros.map((m) => m.id === id ? actualizado : m);
-    return actualizado;
+  async create(dto: CreateMicroDto): Promise<Micro> {
+    await this.lineas.findOne(dto.lineaId);
+    try {
+      const rows = await this.db.query<Micro>(
+        `INSERT INTO micros (placa, interno, capacidad, estado, linea_id)
+         VALUES ($1, $2, $3, $4, $5) RETURNING ${COLUMNAS}`,
+        [dto.placa.trim().toUpperCase(), dto.interno.trim(), dto.capacidad, dto.estado, dto.lineaId]
+      );
+      return rows[0];
+    } catch (error) { return this.mapearError(error); }
   }
 
-  remove(id: number): void {
-    this.findOne(id);
-    this.micros = this.micros.filter((m) => m.id !== id);
+  async update(id: number, dto: UpdateMicroDto): Promise<Micro> {
+    const actual = await this.findOne(id);
+    const cambios = { ...actual, ...dto };
+    await this.lineas.findOne(cambios.lineaId);
+    try {
+      const rows = await this.db.query<Micro>(
+        `UPDATE micros SET placa = $1, interno = $2, capacidad = $3,
+         estado = $4, linea_id = $5 WHERE id = $6 RETURNING ${COLUMNAS}`,
+        [cambios.placa.trim().toUpperCase(), cambios.interno.trim(),
+          cambios.capacidad, cambios.estado, cambios.lineaId, id]
+      );
+      if (!rows[0]) throw new NotFoundException('El micro no existe');
+      return rows[0];
+    } catch (error) { return this.mapearError(error); }
+  }
+
+  async remove(id: number): Promise<void> {
+    const rows = await this.db.query<{ id: number }>(
+      'DELETE FROM micros WHERE id = $1 RETURNING id', [id]
+    );
+    if (!rows[0]) throw new NotFoundException('El micro no existe');
   }
 }
