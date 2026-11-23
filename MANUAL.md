@@ -320,6 +320,16 @@ Cuando un conductor envía una posición, o el administrador cambia una tarifa o
 
 Si por algún motivo el WebSocket no conecta, la página sigue actualizándose cada **60 segundos** (polling). No hay que configurar nada extra: abra dos pestañas con usuarios distintos y pruebe a enviar una posición desde una; en la otra verá el cambio sin recargar.
 
+### 9.3 Mapa callejero real
+
+Después de presionar **Buscar con mi ubicación** o **Usar ubicación de demostración**, aparece un mapa real de OpenStreetMap:
+
+- El círculo punteado marca el radio de **5 km**.
+- El punto oscuro es su ubicación; cada micro tiene un círculo con su número interno y el color de su línea.
+- Al hacer clic en un micro se ve su placa, línea, distancia y si su posición es GPS real o simulada.
+
+Si no hay internet, las calles no cargan y aparece un aviso: presione **Mapa esquemático** para seguir viendo las posiciones relativas. También puede cambiar entre ambos mapas con los botones que están arriba del mapa.
+
 ---
 
 ## 10. Prueba completa (45 comprobaciones)

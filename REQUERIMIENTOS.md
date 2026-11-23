@@ -176,3 +176,15 @@ Entorno: Docker Desktop con PostgreSQL, Caddy + mkcert, API en `:3001` y web en 
 Los casos funcionales quedan cubiertos por la prueba integral: login por rol, validación de capacidad (18 y 26 rechazados), abordaje sin pago confirmado (rechazado), trasbordo con el mismo pago, emergencia con notificaciones y reportes con filtros/CSV.
 
 Comandos y detalles en [`README.md`](README.md); guía paso a paso para terceros en [`MANUAL.md`](MANUAL.md).
+
+---
+
+## 10. Extras incorporados (fuera de la Actividad 01)
+
+Estas mejoras **no son requerimientos de la Actividad 01**; se agregaron para acercar la demo a un entorno real:
+
+- HTTPS local con Caddy + mkcert en `www.rutabol.test` (certificados no versionados).
+- Manual para terceros (`MANUAL.md`) y scripts de verificación (E2E, carga, restore, GPS y WebSocket).
+- GPS real del navegador con registro del origen de cada posición.
+- Actualizaciones en tiempo real por Socket.IO, con polling de 60 s como respaldo.
+- **Mapa callejero real con Leaflet + OpenStreetMap** en *Micros cercanos*, mostrando el radio de 5 km, un marcador por micro y su distancia. Si no hay internet, se avisa y se puede usar el mapa esquemático anterior (también seleccionable manualmente).

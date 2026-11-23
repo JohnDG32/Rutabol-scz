@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { obtenerUbicacion, ubicacionDemo, type OrigenUbicacion } from '@/lib/geolocalizacion';
 import { obtenerSocket } from '@/lib/socket';
+import { MapaCercanos } from '@/components/MapaCercanos';
 import type { Categoria, Linea, Micro, MicroCercano, Tarifa } from '@/lib/types';
 
 interface Props {
@@ -37,26 +38,6 @@ export function Consultas({ lineas, micros, avisar }: Props) {
       .then(setTarifas)
       .catch((e: unknown) => avisar(e instanceof Error ? e.message : 'No se pudieron cargar las tarifas'));
   }, [lineaTarifa, categoria, avisar]);
-
-  const mapa = useMemo(() => {
-    if (!cercanos.length) return null;
-    const lats = cercanos.map((m) => m.lat);
-    const lngs = cercanos.map((m) => m.lng);
-    const margenLat = Math.max((Math.max(...lats) - Math.min(...lats)) * 0.25, 0.002);
-    const margenLng = Math.max((Math.max(...lngs) - Math.min(...lngs)) * 0.25, 0.002);
-    const minLat = Math.min(...lats, centro.lat) - margenLat;
-    const maxLat = Math.max(...lats, centro.lat) + margenLat;
-    const minLng = Math.min(...lngs, centro.lng) - margenLng;
-    const maxLng = Math.max(...lngs, centro.lng) + margenLng;
-    const proyectar = (lat: number, lng: number) => ({
-      x: 20 + ((lng - minLng) / (maxLng - minLng)) * 260,
-      y: 20 + ((maxLat - lat) / (maxLat - minLat)) * 140,
-    });
-    return {
-      puntos: cercanos.map((micro) => ({ micro, ...proyectar(micro.lat, micro.lng) })),
-      origen: proyectar(centro.lat, centro.lng),
-    };
-  }, [cercanos, centro]);
 
   async function cargarCercanos(ubicacion: { lat: number; lng: number; origen: OrigenUbicacion; precision: number | null }) {
     setCentro({ lat: ubicacion.lat, lng: ubicacion.lng });
@@ -189,28 +170,8 @@ export function Consultas({ lineas, micros, avisar }: Props) {
             </button>
           </div>
         </div>
-        {mapa && (
-          <div className="mapaEsquematico">
-            <svg viewBox="0 0 300 180" role="img" aria-label="Mapa esquemático de micros cercanos">
-              <rect x="0" y="0" width="300" height="180" rx="12" className="mapaFondo" />
-              {[40, 80, 120].map((y) => <line key={`h${y}`} x1="10" x2="290" y1={y} y2={y} className="mapaRejilla" />)}
-              {[60, 120, 180, 240].map((x) => <line key={`v${x}`} y1="10" y2="170" x1={x} x2={x} className="mapaRejilla" />)}
-              <circle cx={mapa.origen.x} cy={mapa.origen.y} r="26" className="mapaRadio" />
-              <circle cx={mapa.origen.x} cy={mapa.origen.y} r="4" className="mapaOrigen">
-                <title>Su ubicación</title>
-              </circle>
-              {mapa.puntos.map(({ micro, x, y }) => (
-                <g key={micro.id}>
-                  <circle cx={x} cy={y} r="8" className="mapaPunto" />
-                  <circle cx={x} cy={y} r="4" fill={lineas.find((l) => l.id === micro.lineaId)?.color ?? '#0f766e'}>
-                    <title>{`${micro.interno} · ${micro.distanciaKm.toFixed(2)} km`}</title>
-                  </circle>
-                  <text x={x + 10} y={y + 4} className="mapaEtiqueta">{micro.interno}</text>
-                </g>
-              ))}
-            </svg>
-            <p className="muted">Mapa esquemático: muestra la posición relativa de cada micro respecto a su ubicación (real o de demostración). No es un mapa callejero.</p>
-          </div>
+        {cercanos.length > 0 && (
+          <MapaCercanos centro={centro} cercanos={cercanos} lineas={lineas} />
         )}
         <div className="panelLista">
           {cercanos.length ? cercanos.map((micro) => (

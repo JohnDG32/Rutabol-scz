@@ -171,6 +171,15 @@ Después de cada operación de escritura correcta (`POST`/`PATCH`/`PUT`/`DELETE`
 - El cliente (`frontend/src/lib/socket.ts`) usa el mismo origen, reintenta la conexión y baja a polling HTTP si el WebSocket no está disponible.
 - Se conserva **polling cada 60 segundos** como respaldo (antes era cada 10 s). Es decir: WebSocket para inmediatez, polling para resiliencia.
 
+## Extra: mapa callejero real
+
+La sección *Micros cercanos* muestra un mapa **Leaflet + OpenStreetMap** con el radio de búsqueda de 5 km, un marcador por micro (con color de su línea) y un popup con placa, línea, distancia y origen de la posición. Al consultar, el mapa se ajusta automáticamente a la ubicación y a los micros encontrados.
+
+- El botón **Mapa esquemático** permite volver a la vista anterior, que funciona sin conexión.
+- Si fallan las teselas (por ejemplo, sin internet), aparece un aviso con acceso directo al mapa esquemático.
+- Leaflet se importa de forma dinámica dentro de un cliente de Next.js, por lo que no interfiere con el renderizado del servidor.
+- Las teselas se sirven desde OpenStreetMap; se muestra su atribución en el mapa, como exige su licencia.
+
 ## Copias de seguridad
 
 ```powershell
