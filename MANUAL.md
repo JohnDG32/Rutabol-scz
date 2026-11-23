@@ -319,7 +319,22 @@ Al final debe mostrar:
 TOTAL: 45  PASS: 45  FAIL: 0
 ```
 
-El script crea y limpia datos de prueba automáticamente.
+El script limpia las tablas de operación antes y después, por lo que puede ejecutarse las veces que quiera. Ojo: borra pagos/viajes de demostración anteriores, no solo los que crea en esa ejecución.
+
+### 10.1 Otras dos verificaciones (opcional pero recomendado)
+
+Mientras Docker y la API sigan corriendo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\prueba-carga.ps1
+powershell -ExecutionPolicy Bypass -File tests\verificar-restore.ps1
+```
+
+El primero simula 20 usuarios al mismo tiempo y mide cuánto tarda cada respuesta. Debe terminar con `PASS - p95 <= 3000 ms y sin errores`. En esta máquina dio 400 peticiones, 0 errores, promedio 87 ms y p95 124 ms.
+
+El segundo hace una copia de la base, la restaura en una base vacía temporal y compara las 14 tablas. Debe terminar con `PASS - el restore reprodujo los datos exactamente`. Después borra la base temporal sola.
+
+Si querés una carga más liviana: `powershell -ExecutionPolicy Bypass -File tests\prueba-carga.ps1 -Usuarios 5 -Iteraciones 2`.
 
 ---
 

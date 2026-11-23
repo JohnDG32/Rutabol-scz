@@ -91,7 +91,7 @@ Usuarios de demostración creados al iniciar el backend: `admin`, `conductor1`, 
 |---|---|---|
 | RNF-01 | Seguridad | bcrypt para contraseñas, sesiones en PostgreSQL, `RolesGuard` por endpoint, `ValidationPipe` con whitelist |
 | RNF-02 | Privacidad | Cookie `httpOnly`/`sameSite`/`secure` en HTTPS local (Caddy + mkcert), auditoría sin contraseñas/tokens/fotos, sin datos de tarjeta; limitación: fotos se guardan como data URL en BD local |
-| RNF-03 | Rendimiento (≤ 3 s) | Consultas parametrizadas e índices en `posiciones`, `abordajes`, `pagos`, `tarifas` y `viajes`; sin prueba de carga en esta fase |
+| RNF-03 | Rendimiento (≤ 3 s) | Consultas parametrizadas e índices en `posiciones`, `abordajes`, `pagos`, `tarifas` y `viajes`; prueba de carga `tests/prueba-carga.ps1`: 400 peticiones (20 usuarios × 5 iteraciones × 4 endpoints), 0 errores, promedio 87 ms, p95 124 ms, máximo 1014 ms |
 | RNF-04 | Disponibilidad | `restart: unless-stopped` en Compose y healthcheck de PostgreSQL |
 | RNF-05 | Precisión GPS | Validación de latitud/longitud; las posiciones son simuladas y la precisión real depende del dispositivo |
 | RNF-06 | Usabilidad | Interfaz en español con formularios, tablas, estados visuales y mensajes de error |
@@ -99,7 +99,7 @@ Usuarios de demostración creados al iniciar el backend: `admin`, `conductor1`, 
 | RNF-08 | Escalabilidad | Módulos NestJS independientes; nuevas líneas, micros y conductores se registran sin reiniciar |
 | RNF-09 | Integridad de datos | Claves foráneas, `UNIQUE`, `CHECK`, índices parciales y validaciones en DTO |
 | RNF-10 | Conectividad | Todas las operaciones usan la API REST; el frontend muestra error de conexión |
-| RNF-11 | Recuperación | Volumen `postgres_data` y `pg_dump` (comando en el README) |
+| RNF-11 | Recuperación | Volumen `postgres_data` y `pg_dump`; restore verificado con `tests/verificar-restore.ps1` sobre una base vacía: las 14 tablas quedan con conteos idénticos a la original |
 | RNF-12 | Mantenibilidad | Separación por módulos, capa `api.ts` centralizada y componentes React por panel |
 | RNF-13 | Auditoría | `auditoria` + `AuditoriaInterceptor` registran POST/PATCH/DELETE exitosos con actor y detalles saneados |
 | RNF-14 | Escalabilidad geográfica | `lineas` admite nuevas zonas y municipios; el modelo no está atado a una sola ciudad |

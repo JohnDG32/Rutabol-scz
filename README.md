@@ -156,8 +156,16 @@ Listado completo y trazabilidad RF/RNF/RN: [`REQUERIMIENTOS.md`](REQUERIMIENTOS.
 ## Copias de seguridad
 
 ```powershell
-docker compose exec -T postgres pg_dump -U micros -d micros_scz > backup_rutabol.sql
-docker compose exec -T postgres psql -U micros -d micros_scz < backup_rutabol.sql
+docker compose exec -T postgres pg_dump -U micros -d micros_scz -f /tmp/backup_rutabol.sql
+docker compose cp postgres:/tmp/backup_rutabol.sql ./backup_rutabol.sql
+docker compose exec -T postgres sh -c "rm -f /tmp/backup_rutabol.sql"
+```
+
+Para restaurar, copie el archivo al contenedor y aplíquelo **sobre una base vacía**:
+
+```powershell
+docker compose cp ./backup_rutabol.sql postgres:/tmp/backup_rutabol.sql
+docker compose exec -T postgres psql -U micros -d micros_scz -v ON_ERROR_STOP=1 -f /tmp/backup_rutabol.sql
 ```
 
 ## Verificación de compilación
@@ -179,4 +187,17 @@ Con Docker, la API y la web en ejecución:
 powershell -ExecutionPolicy Bypass -File tests/verificar-flujo.ps1
 ```
 
-Ejecuta 45 comprobaciones sobre catálogo público, seguridad, roles, capacidad, GPS, tarifas, pagos, trasbordos, emergencias, notificaciones, historial y reportes (incluye filtros y exportación CSV). Al finalizar elimina los micros temporales `QA*` y restaura el micro demo; imprime un resumen con PASS/FAIL y termina con código 1 si hay fallos.
+Ejecuta 45 comprobaciones sobre catálogo público, seguridad, roles, capacidad, GPS, tarifas, pagos, trasbordos, emergencias, notificaciones, historial y reportes (incluye filtros y exportación CSV). Limpia las tablas de operación al empezar y al terminar, elimina los micros temporales `QA*` y restaura el micro demo, así que puede ejecutarse varias veces seguidas. Imprime un resumen con PASS/FAIL y termina con código 1 si hay fallos.
+
+## Verificación de rendimiento y recuperación
+
+Con Docker y la API en ejecución:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests/prueba-carga.ps1
+powershell -ExecutionPolicy Bypass -File tests/verificar-restore.ps1
+```
+
+`prueba-carga.ps1` lanza 20 usuarios concurrentes × 5 iteraciones × 4 endpoints públicos (400 peticiones) y exige 0 errores y p95 ≤ 3000 ms. Resultado obtenido: **0 errores, promedio 87 ms, p95 124 ms, máximo 1014 ms**. Acepta `-Usuarios`, `-Iteraciones` y `-BaseUrl` como parámetros.
+
+`verificar-restore.ps1` hace `pg_dump`, crea una base temporal vacía, restaura el volcado y compara el conteo de las 14 tablas; al final elimina la base temporal. Resultado obtenido: **conteos idénticos en las 14 tablas (PASS)**.

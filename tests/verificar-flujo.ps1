@@ -7,6 +7,18 @@ $adminPass = ($envLines | Where-Object { $_ -like 'ADMIN_PASSWORD=*' }) -replace
 $demoLine = $envLines | Where-Object { $_ -like 'RUTABOL_DEMO_PASSWORD=*' }
 $demoPass = if ($demoLine) { $demoLine -replace '^RUTABOL_DEMO_PASSWORD=','' } else { 'RutabolDemo123' }
 
+# La prueba se limpia antes y despues para poder ejecutarla las veces que sea sin datos huerfanos.
+function Limpiar-DatosDePrueba {
+  docker compose exec -T postgres psql -U micros -d micros_scz -v ON_ERROR_STOP=1 `
+    -c "TRUNCATE TABLE trasbordos, abordajes, pagos, viajes, notificaciones, auditoria, posiciones RESTART IDENTITY CASCADE;" `
+    -c "DELETE FROM micros WHERE interno LIKE 'QA%';" `
+    -c "UPDATE micros SET estado = CASE WHEN autorizado THEN 'DISPONIBLE' ELSE 'FUERA_DE_SERVICIO' END;" 2>&1 | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw 'No se pudo limpiar la base de prueba' }
+}
+
+Write-Host '== 0. Limpieza inicial =='
+Limpiar-DatosDePrueba
+
 $sesiones = @{}
 $resultados = @()
 
@@ -203,9 +215,7 @@ $r = Req 'GET' '/reportes/exportar?lineaId=1' $null 'admin'
 Chequear 'Exportación CSV' ($r.code -eq 200) "code=$($r.code)"
 
 Write-Host '== L. Limpieza de viajes de prueba =='
-foreach ($id in @($viajeB)) { $null = Req 'POST' "/viajes/$id/finalizar" $null 'conductor' }
-$null = Req 'PATCH' '/micros/1' @{ placa='DEMO-001'; interno='101'; capacidad=25; estado='DISPONIBLE'; autorizado=$true; lineaId=1 } 'admin'
-foreach ($id in @($micro18, $micro19, $microNo)) { $null = Req 'DELETE' "/micros/$id" $null 'admin' }
+Limpiar-DatosDePrueba
 $r = Req 'GET' '/micros'
 Write-Host "Estados finales: $((@($r.data) | ForEach-Object { "$($_.interno)=$($_.estado)" }) -join ', ')"
 
