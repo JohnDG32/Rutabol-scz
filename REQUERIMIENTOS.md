@@ -160,12 +160,19 @@ Las definiciones están en `database/01_init.sql` (instalación nueva) y `databa
 
 ---
 
-## 9. Verificación pendiente en entorno local
+## 9. Verificación ejecutada en entorno local
 
-La compilación de backend y frontend fue exitosa. La verificación de ejecución requiere Docker Desktop y estos pasos:
+Entorno: Docker Desktop con PostgreSQL, Caddy + mkcert, API en `:3001` y web en `:3000`, accediendo por `https://www.rutabol.test`. La compilación de backend (`nest build`) y frontend (`next build`) y el chequeo de tipos (`tsc --noEmit`) pasaron correctamente.
 
-1. `docker compose up -d` y aplicar la migración si el volumen ya existía.
-2. Iniciar API (`npm run start:dev` en `backend`) y web (`npm run dev` en `frontend`).
-3. Probar: login por rol, alta de micro con capacidad 18/26 (rechazo), abordaje sin pago confirmado (rechazo), trasbordo con el mismo pago, emergencia con notificaciones y reporte actualizado.
+| Verificación | Comando | Resultado |
+|---|---|---|
+| Flujo completo (45 comprobaciones) | `tests/verificar-flujo.ps1` | **45/45 PASS**. Limpia al inicio y al final, así que es repetible |
+| GPS real / origen de posición | `tests/verificar-gps-real.ps1` | **3/3 PASS** (`GPS_NAVEGADOR`, etiqueta en cercanos, default `SIMULADO`) |
+| WebSocket en tiempo real | `tests/verificar-websocket.ps1` | **4/4 PASS**, `transport=websocket` por HTTPS |
+| Carga | `tests/prueba-carga.ps1` | 400 peticiones, **0 errores**, promedio 87 ms, p95 124 ms |
+| Copia de seguridad | `tests/verificar-restore.ps1` | `pg_dump` + restore en base vacía: **14/14 tablas con conteos idénticos** |
+| HTTPS y sesión | `curl.exe --ssl-no-revoke -i https://www.rutabol.test/api/auth/login` | Web 200, `Set-Cookie: rutabol.sid=...; HttpOnly; Secure; SameSite=Lax` |
 
-Detalles y comandos en `README.md`.
+Los casos funcionales quedan cubiertos por la prueba integral: login por rol, validación de capacidad (18 y 26 rechazados), abordaje sin pago confirmado (rechazado), trasbordo con el mismo pago, emergencia con notificaciones y reportes con filtros/CSV.
+
+Comandos y detalles en [`README.md`](README.md); guía paso a paso para terceros en [`MANUAL.md`](MANUAL.md).
