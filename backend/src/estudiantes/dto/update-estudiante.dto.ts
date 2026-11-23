@@ -11,7 +11,7 @@ export class UpdateEstudianteDto {
   correoInstitucional?: string;
 
   @IsOptional() @IsString()
-  @Matches(/^(data:image\/|https?:\/\/)/, { message: 'La fotografía debe ser una imagen (data URL o URL)' })
+  @Matches(/^(data:image\/|\/uploads\/fotos\/|https?:\/\/)/, { message: 'La fotografía debe ser una imagen (data URL o URL)' })
   fotoUrl?: string;
 
   @IsOptional() @IsBoolean()

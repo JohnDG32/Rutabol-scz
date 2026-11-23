@@ -494,6 +494,8 @@ footer {
 .muted {color:#667987; font-size:13px; line-height:1.5;}
 .subtitulo {margin:32px 0 12px; font-size:19px;}
 
+.fotoEstudiante {width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid #e1e8ec; background:#f2f8f7;}
+
 .mapaBloque {margin-bottom:14px;}
 .mapaCabecera {display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px;}
 .mapaRealWrap {background:white; border:1px solid #e1e8ec; border-radius:14px; overflow:hidden;}

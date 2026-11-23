@@ -296,15 +296,16 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
           <div>
             <div className="tablaWrap">
               <table>
-                <thead><tr><th>Estudiante</th><th>Categoría</th><th>Código</th><th>Verificado</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Estudiante</th><th>Categoría</th><th>Código</th><th>Foto</th><th>Verificado</th><th>Acciones</th></tr></thead>
                 <tbody>
                   {estudiantes.map((e) => (
                     <tr key={e.id}><td>{e.nombre} {e.apellido}</td><td>{e.categoria}</td><td>{e.codigo}</td>
+                      <td><img className="fotoEstudiante" src={e.fotoUrl} alt={`Foto de ${e.nombre}`} /></td>
                       <td>{e.verificado ? 'Sí' : 'No'}</td>
                       <td className="acciones">{!e.verificado && <button onClick={() => void ejecutar(() => api.verificarEstudiante(e.id), 'Estudiante verificado.')}>Verificar</button>}
                         <button className="peligro" onClick={() => void ejecutar(() => api.eliminarEstudiante(e.id), 'Estudiante eliminado.')}>Eliminar</button></td></tr>
                   ))}
-                  {!estudiantes.length && <tr><td colSpan={5} className="vacio">No hay estudiantes registrados.</td></tr>}
+                  {!estudiantes.length && <tr><td colSpan={6} className="vacio">No hay estudiantes registrados.</td></tr>}
                 </tbody>
               </table>
             </div>

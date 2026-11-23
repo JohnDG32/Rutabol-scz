@@ -330,6 +330,24 @@ Después de presionar **Buscar con mi ubicación** o **Usar ubicación de demost
 
 Si no hay internet, las calles no cargan y aparece un aviso: presione **Mapa esquemático** para seguir viendo las posiciones relativas. También puede cambiar entre ambos mapas con los botones que están arriba del mapa.
 
+### 9.4 Fotografías de estudiantes
+
+En **Administración → estudiantes**, al registrar un estudiante se selecciona la foto con *Fotografía de identificación*. El archivo se sube igual que antes, pero ahora la API lo guarda en disco y en la base de datos queda solo una ruta.
+
+- No hay que crear carpetas ni configurar nada: `backend/uploads/fotos/` se crea automáticamente.
+- En la tabla de estudiantes aparece una **miniatura** en la columna *Foto*. Si no se ve, recargue la página.
+- El tamaño máximo es **2 MB**. Si la imagen es más grande, elija otra.
+- Cuando un conductor valida la tarifa con *Fotografía (opcional; debe coincidir con la registrada)*, el sistema compara la imagen byte por byte con la guardada. Puede volver a seleccionar el mismo archivo o dejar el campo vacío.
+- Si venías de una versión anterior, las fotos antiguas se migran solas al iniciar la API.
+
+Para comprobarlo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\verificar-fotos.ps1
+```
+
+Debe terminar con `TOTAL: 5  PASS: 5  FAIL: 0`. La prueba crea un estudiante temporal y lo elimina al final.
+
 ---
 
 ## 10. Prueba completa (45 comprobaciones)

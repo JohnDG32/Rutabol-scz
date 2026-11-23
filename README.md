@@ -4,7 +4,7 @@
 
 Sistema web para mejorar el control, la seguridad, la organización y la transparencia del transporte público de micros en Santa Cruz de la Sierra. Implementa los 24 requerimientos funcionales y 18 no funcionales documentados en [`REQUERIMIENTOS.md`](REQUERIMIENTOS.md).
 
-> Proyecto académico con datos ficticios. GPS, pasarela de pagos y fotografías son simulados; no representan operación oficial.
+> Proyecto académico con datos ficticios. GPS y pasarela de pagos son simulados; las fotografías son de demostración y se almacenan fuera de la base de datos. No representa operación oficial.
 
 > **¿Querés correrlo desde cero?** Seguí el [`MANUAL.md`](MANUAL.md), paso a paso y sin omitir nada.
 
@@ -179,6 +179,17 @@ La sección *Micros cercanos* muestra un mapa **Leaflet + OpenStreetMap** con el
 - Si fallan las teselas (por ejemplo, sin internet), aparece un aviso con acceso directo al mapa esquemático.
 - Leaflet se importa de forma dinámica dentro de un cliente de Next.js, por lo que no interfiere con el renderizado del servidor.
 - Las teselas se sirven desde OpenStreetMap; se muestra su atribución en el mapa, como exige su licencia.
+
+## Extra: fotografías fuera de la base de datos
+
+Las fotos de identificación de los estudiantes ya no se guardan como `data:image/...` dentro de PostgreSQL. El frontend sigue seleccionando un archivo y convirtiéndolo en data URL, pero la API la decodifica y la escribe en `backend/uploads/fotos/`; en la tabla `estudiantes.foto_url` queda solo una ruta como `/uploads/fotos/estudiante-1-<hash>.png`.
+
+- Caddy publica `/uploads/*` y `express.static` sirve los archivos desde disco. El directorio está ignorado por Git.
+- Al arrancar, `FotoService` migra automáticamente cualquier data URL antigua a un archivo y actualiza la fila.
+- Límite de 2 MB; se aceptan PNG, JPEG, WebP y GIF. El nombre usa un hash SHA-256 del contenido, así que subidas repetidas no duplican archivos.
+- La validación de tarifa compara los bytes de la foto enviada con la guardada, tanto si la BD tiene una URL de archivo como si conserva una data URL vieja.
+- Al editar o eliminar un estudiante se borra el archivo que dejó de usarse.
+- El panel de administración muestra una miniatura de la foto en la pestaña *estudiantes*.
 
 ## Copias de seguridad
 

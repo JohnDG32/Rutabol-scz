@@ -21,7 +21,7 @@ export class CreateEstudianteDto {
   correoInstitucional?: string;
 
   @IsString() @IsNotEmpty()
-  @Matches(/^(data:image\/|https?:\/\/)/, { message: 'La fotografía debe ser una imagen (data URL o URL)' })
+  @Matches(/^(data:image\/|\/uploads\/fotos\/|https?:\/\/)/, { message: 'La fotografía debe ser una imagen (data URL o URL)' })
   fotoUrl!: string;
 
   @IsOptional() @IsInt() @Min(1)

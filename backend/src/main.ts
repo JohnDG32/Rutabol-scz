@@ -2,8 +2,10 @@ import 'reflect-metadata';
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import express = require('express');
 import session = require('express-session');
 import connectPgSimple = require('connect-pg-simple');
+import * as path from 'path';
 import { AppModule } from './app.module';
 import { DatabaseService } from './database/database.service';
 
@@ -17,6 +19,9 @@ async function bootstrap() {
 
   // Detrás de Caddy, Express debe confiar en X-Forwarded-Proto para marcar la cookie como Secure.
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
+  // Extra: fotografías de estudiantes servidas desde disco, no desde la BD.
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   app.setGlobalPrefix('api');
   app.enableCors({

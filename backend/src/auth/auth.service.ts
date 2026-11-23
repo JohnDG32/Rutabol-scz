@@ -16,7 +16,7 @@ export interface UsuarioAutenticado {
   rol: Rol;
 }
 
-const FOTO_DEMO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==';
+const FOTO_DEMO = '/uploads/fotos/foto-demo.png';
 
 @Injectable()
 export class AuthService implements OnModuleInit {

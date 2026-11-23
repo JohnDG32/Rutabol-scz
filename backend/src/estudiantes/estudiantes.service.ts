@@ -4,6 +4,7 @@ import { CreateEstudianteDto } from './dto/create-estudiante.dto';
 import { UpdateEstudianteDto } from './dto/update-estudiante.dto';
 import { ValidarEstudianteDto } from './dto/validar-estudiante.dto';
 import { Estudiante } from './estudiante.interface';
+import { FotoService } from './foto.service';
 
 const COLUMNAS = `id, usuario_id AS "usuarioId", nombre, apellido, ci, categoria, codigo,
   correo_institucional AS "correoInstitucional", foto_url AS "fotoUrl", verificado,
@@ -11,7 +12,10 @@ const COLUMNAS = `id, usuario_id AS "usuarioId", nombre, apellido, ci, categoria
 
 @Injectable()
 export class EstudiantesService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly fotos: FotoService,
+  ) {}
 
   findAll(): Promise<Estudiante[]> {
     return this.db.query<Estudiante>(`SELECT ${COLUMNAS} FROM estudiantes ORDER BY id`);
@@ -39,16 +43,20 @@ export class EstudiantesService {
 
   async create(dto: CreateEstudianteDto): Promise<Estudiante> {
     this.validarReglas(dto);
+    const fotoGuardada = dto.fotoUrl.startsWith('data:image/')
+      ? await this.fotos.guardar(dto.fotoUrl, dto.ci)
+      : dto.fotoUrl;
     try {
       const rows = await this.db.query<{ id: number }>(
         `INSERT INTO estudiantes
           (usuario_id, nombre, apellido, ci, categoria, codigo, correo_institucional, foto_url)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
         [dto.usuarioId ?? null, dto.nombre.trim(), dto.apellido.trim(), dto.ci.trim(),
-          dto.categoria, dto.codigo.trim(), dto.correoInstitucional?.trim() || null, dto.fotoUrl]
+          dto.categoria, dto.codigo.trim(), dto.correoInstitucional?.trim() || null, fotoGuardada]
       );
       return this.findOne(rows[0].id);
     } catch (error) {
+      if (fotoGuardada !== dto.fotoUrl) await this.fotos.borrar(fotoGuardada);
       const codigo = (error as { code?: string })?.code;
       if (codigo === '23505') throw new ConflictException('La cédula, el usuario o el código ya están registrados');
       throw error;
@@ -61,13 +69,17 @@ export class EstudiantesService {
         !/@upds\.edu\.bo$/i.test(dto.correoInstitucional.trim())) {
       throw new BadRequestException('El correo institucional debe terminar en @upds.edu.bo');
     }
+    const fotoNueva = dto.fotoUrl?.startsWith('data:image/')
+      ? await this.fotos.guardar(dto.fotoUrl, actual.ci)
+      : dto.fotoUrl ?? actual.fotoUrl;
     await this.db.query(
       `UPDATE estudiantes SET nombre = $1, apellido = $2, correo_institucional = $3,
         foto_url = $4, verificado = $5 WHERE id = $6`,
       [dto.nombre ?? actual.nombre, dto.apellido ?? actual.apellido,
         dto.correoInstitucional !== undefined ? dto.correoInstitucional.trim() || null : actual.correoInstitucional,
-        dto.fotoUrl ?? actual.fotoUrl, dto.verificado ?? actual.verificado, id]
+        fotoNueva, dto.verificado ?? actual.verificado, id]
     );
+    if (fotoNueva !== actual.fotoUrl) await this.fotos.borrar(actual.fotoUrl);
     return this.findOne(id);
   }
 
@@ -77,8 +89,10 @@ export class EstudiantesService {
   }
 
   async remove(id: number): Promise<void> {
+    const actual = await this.findOne(id);
     const rows = await this.db.query<{ id: number }>('DELETE FROM estudiantes WHERE id = $1 RETURNING id', [id]);
     if (!rows[0]) throw new NotFoundException('El estudiante no existe');
+    await this.fotos.borrar(actual.fotoUrl);
   }
 
   /** RF-13/RF-14/RF-16/RN-07/RN-08: validación de código, categoría y fotografía. */
@@ -90,7 +104,7 @@ export class EstudiantesService {
     const estudiante = rows[0];
     if (!estudiante) throw new NotFoundException('No existe un estudiante con ese código y categoría');
     if (!estudiante.verificado) throw new BadRequestException('El estudiante todavía no fue verificado');
-    if (dto.fotoUrl && dto.fotoUrl.trim() !== estudiante.fotoUrl.trim()) {
+    if (dto.fotoUrl && !(await this.fotos.coincide(dto.fotoUrl, estudiante.fotoUrl))) {
       throw new UnauthorizedException('La fotografía no coincide con la registrada');
     }
     return { valido: true, estudiante };
