@@ -1,3 +1,7 @@
+> **Nota:** este archivo describe el estado histórico de la rama base. La rama
+> `rutabol-requerimientos` implementa la Actividad 01 (RUTABOL-SCZ); consulte
+> `README.md` y `REQUERIMIENTOS.md`.
+
 # Continuación de la Clase 8 (no implementada todavía)
 
 Este repositorio **se detiene intencionalmente al finalizar la Clase 7**.

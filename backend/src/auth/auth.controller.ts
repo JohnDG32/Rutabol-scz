@@ -28,7 +28,7 @@ export class AuthController {
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     await new Promise<void>((resolve, reject) => req.session.destroy(err => err ? reject(err) : resolve()));
-    res.clearCookie('micros.sid', { path: '/', httpOnly: true, sameSite: 'lax', secure: false });
+    res.clearCookie('rutabol.sid', { path: '/', httpOnly: true, sameSite: 'lax', secure: false });
     return { mensaje: 'Sesión finalizada' };
   }
 }

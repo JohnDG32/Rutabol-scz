@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Micros SCZ | Tecnología Web I',
-  description: 'Catálogo de líneas y gestión de micros con Next.js y NestJS.',
+  title: 'RUTABOL-SCZ | Transporte público de Santa Cruz',
+  description: 'Control de micros, tarifas, pasajeros, trasbordos y pagos del transporte público cruceño.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

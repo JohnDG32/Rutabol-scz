@@ -167,20 +167,21 @@ El primer comando debe mostrar `www.rutabol.test` y la dirección `127.0.0.1`. E
 
 DNS traduce un nombre, como `www.rutabol.test`, a una dirección IP. No instala ni inicia Next.js o NestJS, no abre sus puertos y no sirve archivos web.
 
-En este proyecto, los registros A apuntan a `127.0.0.1`, pero Next.js debe estar ejecutándose por separado. La dirección local de la aplicación sigue siendo:
+En este proyecto, los registros A apuntan a `127.0.0.1`, pero Next.js debe estar ejecutándose por separado. La aplicación quedó configurada para abrirse con el nombre DNS (DNS no almacena puertos, por eso se escribe el puerto en la URL):
 
 ```text
-http://localhost:3000
+https://www.rutabol.test
+https://www.rutabol.test/api
 ```
 
-DNS tampoco almacena el puerto de la aplicación; una URL que use el nombre DNS tendría que especificar el puerto, por ejemplo `http://www.rutabol.test:3000`.
+`backend/.env` y `frontend/.env.local` usan ese nombre: `FRONTEND_ORIGIN=https://www.rutabol.test` y `NEXT_PUBLIC_API_URL=https://www.rutabol.test/api`. Un proxy Caddy (servicio `caddy` del `compose.yaml`) termina TLS con un certificado `mkcert` y reenvía a los puertos internos 3000 y 3001. Como la web y la API comparten el mismo host, la cookie `rutabol.sid` sigue siendo válida sin configurar un dominio adicional; se marca `Secure` porque la petición entra por HTTPS.
 
-Además, `nslookup www.rutabol.test 127.0.0.1` consulta BIND explícitamente solo para esa prueba. El navegador usa el DNS configurado en Windows, que no necesariamente es BIND. Para que el navegador resuelva el nombre habría que configurar el resolvedor del sistema. Como BIND está configurado con `recursion no`, no se debe convertir sin más en el único DNS de Windows: también habría que planificar cómo resolver nombres externos. Para esta práctica, se mantiene `localhost` para abrir la aplicación y se comprueba la zona con las herramientas DNS.
+`nslookup www.rutabol.test 127.0.0.1` consulta BIND explícitamente solo para esa prueba. El navegador usa el DNS configurado en Windows, que no necesariamente es BIND. Para que resuelva el nombre se agregó una entrada en `C:\Windows\System32\drivers\etc\hosts` (ver `README.md`, paso 0). No se convirtió a BIND en el único DNS de Windows porque tiene `recursion no`: dejaría de resolverse dominios externos. BIND se conserva para practicar la zona con `dig`/`nslookup`, y el `hosts` resuelve el nombre ante el navegador.
 
 ## Problemas encontrados y cómo se resolvieron
 
 1. **`dig @127.0.0.1 ...` produjo un error de sintaxis en PowerShell.** PowerShell interpretó `@` como sintaxis propia antes de ejecutar el comando. Al usar `docker compose exec`, se resolvió citando el argumento: `dig '@127.0.0.1' ...`.
 2. **`nslookup` no recibía respuesta cuando BIND se publicaba en el puerto 5300.** No se confirmó que el puerto 5300 estuviera ocupado. Se cambió el mapeo de Docker al puerto DNS estándar 53 para UDP y TCP y se recreó el contenedor. Después, `nslookup` desde Windows resolvió el registro A y devolvió el SOA.
-3. **El navegador no resolvía `www.rutabol.test` aunque `nslookup` funcionaba.** `nslookup` se había dirigido explícitamente a `127.0.0.1`, pero Windows y el navegador seguían usando el resolvedor predeterminado del sistema. Se mantuvo `localhost` para acceder a la web; configurar BIND como resolvedor del sistema requiere preparar también la resolución de dominios externos.
+3. **El navegador no resolvía `www.rutabol.test` aunque `nslookup` funcionaba.** `nslookup` se había dirigido explícitamente a `127.0.0.1`, pero Windows y el navegador seguían usando el resolvedor predeterminado del sistema. Se resolvió agregando `127.0.0.1 www.rutabol.test api.rutabol.test` al archivo `hosts` de Windows; configurar BIND como único resolvedor del sistema requiere preparar también la resolución de dominios externos (`recursion no`).
 4. **Aviso de archivo de zona sin salto de línea final.** `named-checkzone` mostró ese aviso, pero también cargó la zona y terminó en `OK`. Es un aviso de formato, no la causa de los problemas de consulta; se puede quitar añadiendo un salto de línea al final de `db.rutabol.test`.
 5. **Aviso de contenedor Apache huérfano en Docker Compose.** Era independiente del servicio DNS y no impedía su inicio, por lo que no se eliminó ni se modificó como parte de esta configuración.

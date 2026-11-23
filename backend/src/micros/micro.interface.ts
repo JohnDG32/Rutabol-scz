@@ -1,4 +1,6 @@
-export type EstadoMicro = 'ACTIVO' | 'MANTENIMIENTO' | 'INACTIVO';
+import type { EstadoMicro } from '../common/roles';
+
+export type { EstadoMicro };
 
 export interface Micro {
   id: number;
@@ -6,5 +8,22 @@ export interface Micro {
   interno: string;
   capacidad: number;
   estado: EstadoMicro;
+  autorizado: boolean;
+  ocupacion: number;
   lineaId: number;
+}
+
+export interface MicroCercano extends Micro {
+  lat: number;
+  lng: number;
+  ultimaPosicion: string;
+  distanciaKm: number;
+}
+
+export interface Posicion {
+  id: number;
+  microId: number;
+  lat: number;
+  lng: number;
+  registradoEn: string;
 }

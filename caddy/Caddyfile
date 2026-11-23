@@ -1,0 +1,21 @@
+# HTTPS local para RUTABOL-SCZ.
+# El certificado fue generado con mkcert y es confiable en esta computadora.
+# Caddy termina TLS en el puerto 443 y reenvía a los servidores de desarrollo.
+
+www.rutabol.test {
+	tls /etc/caddy/certs/rutabol.test.pem /etc/caddy/certs/rutabol.test-key.pem
+
+	# La API y la web comparten dominio; solo cambia la ruta.
+	handle /api/* {
+		reverse_proxy host.docker.internal:3001
+	}
+
+	handle {
+		reverse_proxy host.docker.internal:3000
+	}
+}
+
+api.rutabol.test {
+	tls /etc/caddy/certs/rutabol.test.pem /etc/caddy/certs/rutabol.test-key.pem
+	reverse_proxy host.docker.internal:3001
+}

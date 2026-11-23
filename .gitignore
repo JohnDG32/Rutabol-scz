@@ -8,3 +8,4 @@
 !**/.env.local.example
 .DS_Store
 *.log
+certs/
