@@ -123,7 +123,8 @@ database/         01_init.sql y 02_migracion_rutabol.sql
 | POST | `/api/pagos`, `/api/pagos/:id/confirmar` | Sesión iniciada |
 | GET | `/api/viajes/historial`, `/api/pagos/mios`, `/api/notificaciones` | Sesión iniciada |
 | POST | `/api/viajes`, `/api/viajes/:id/{abordar,bajar,finalizar,trasbordo,emergencia}` | CONDUCTOR, ADMIN |
-| GET | `/api/reportes/resumen` | ADMIN |
+| GET | `/api/reportes/resumen?desde=&hasta=&lineaId=` | ADMIN |
+| GET | `/api/reportes/exportar?desde=&hasta=&lineaId=` | ADMIN (CSV) |
 
 Listado completo y trazabilidad RF/RNF/RN: [`REQUERIMIENTOS.md`](REQUERIMIENTOS.md).
 
@@ -142,3 +143,13 @@ cd ../frontend; npm run build
 ```
 
 Ambos comandos pasan en la versión entregada. La prueba de ejecución con PostgreSQL requiere Docker Desktop en funcionamiento.
+
+## Prueba integral de extremo a extremo
+
+Con Docker, la API y la web en ejecución:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests/verificar-flujo.ps1
+```
+
+Ejecuta 45 comprobaciones sobre catálogo público, seguridad, roles, capacidad, GPS, tarifas, pagos, trasbordos, emergencias, notificaciones, historial y reportes (incluye filtros y exportación CSV). Al finalizar elimina los micros temporales `QA*` y restaura el micro demo; imprime un resumen con PASS/FAIL y termina con código 1 si hay fallos.

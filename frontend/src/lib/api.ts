@@ -1,5 +1,5 @@
 import type {
-  Abordaje, Categoria, Conductor, ConductorInput, Estudiante, Historial, Linea,
+  Abordaje, Categoria, Conductor, ConductorInput, Estudiante, FiltrosReporte, Historial, Linea,
   Micro, MicroCercano, MicroInput, Notificacion, Pago, ResumenReporte,
   ResultadoTrasbordo, Tarifa, Usuario, Viaje,
 } from './types';
@@ -109,5 +109,36 @@ export const api = {
   // Notificaciones y reportes
   notificaciones: () => request<Notificacion[]>('/notificaciones'),
   marcarLeida: (id: number) => request<Notificacion>(`/notificaciones/${id}/leida`, { method: 'PATCH' }),
-  resumen: () => request<ResumenReporte>('/reportes/resumen'),
+  resumen: (filtros: FiltrosReporte = {}) => {
+    const params = new URLSearchParams();
+    if (filtros.desde) params.set('desde', filtros.desde);
+    if (filtros.hasta) params.set('hasta', filtros.hasta);
+    if (filtros.lineaId) params.set('lineaId', String(filtros.lineaId));
+    const query = params.toString();
+    return request<ResumenReporte>(`/reportes/resumen${query ? `?${query}` : ''}`);
+  },
+  exportarReporte: async (filtros: FiltrosReporte = {}): Promise<void> => {
+    const params = new URLSearchParams();
+    if (filtros.desde) params.set('desde', filtros.desde);
+    if (filtros.hasta) params.set('hasta', filtros.hasta);
+    if (filtros.lineaId) params.set('lineaId', String(filtros.lineaId));
+    const query = params.toString();
+    const url = `${BASE}/reportes/exportar${query ? `?${query}` : ''}`;
+    let respuesta: Response;
+    try {
+      respuesta = await fetch(url, { credentials: 'include', cache: 'no-store' });
+    } catch {
+      throw new Error('No se pudo conectar con la API RUTABOL-SCZ.');
+    }
+    if (!respuesta.ok) {
+      const cuerpo = await respuesta.json().catch(() => null);
+      throw new Error(cuerpo?.message ?? `Error HTTP ${respuesta.status}`);
+    }
+    const contenido = await respuesta.text();
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(new Blob([contenido], { type: 'text/csv;charset=utf-8' }));
+    enlace.download = 'rutabol-comprobantes.csv';
+    enlace.click();
+    URL.revokeObjectURL(enlace.href);
+  },
 };

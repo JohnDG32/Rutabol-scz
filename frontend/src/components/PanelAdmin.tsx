@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '@/lib/api';
 import type {
   Categoria, Conductor, ConductorInput, Estudiante, Linea, Micro, MicroInput,
-  ResumenReporte, Tarifa,
+  FiltrosReporte, ResumenReporte, Tarifa,
 } from '@/lib/types';
 
 interface Props {
@@ -56,6 +56,7 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
   const [estudianteForm, setEstudianteForm] = useState(estudianteInicial);
   const [validacion, setValidacion] = useState({ categoria: 'ESCOLAR' as 'ESCOLAR' | 'UNIVERSITARIO', codigo: '', fotoUrl: '' });
   const [reporte, setReporte] = useState<ResumenReporte | null>(null);
+  const [filtros, setFiltros] = useState<FiltrosReporte>({});
   const [procesando, setProcesando] = useState(false);
 
   const cargarSeccion = useCallback(async (seccion: Pestana) => {
@@ -63,11 +64,11 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
       if (seccion === 'conductores') setConductores(await api.conductores());
       if (seccion === 'tarifas') setTarifas(await api.tarifas(0));
       if (seccion === 'estudiantes') setEstudiantes(await api.estudiantes());
-      if (seccion === 'reportes') setReporte(await api.resumen());
+      if (seccion === 'reportes') setReporte(await api.resumen(filtros));
     } catch (e) {
       avisar(e instanceof Error ? e.message : 'No se pudo cargar la sección');
     }
-  }, [avisar]);
+  }, [avisar, filtros]);
 
   useEffect(() => { void cargarSeccion(pestana); }, [pestana, cargarSeccion]);
 
@@ -312,14 +313,32 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
         </div>
       )}
 
-      {pestana === 'reportes' && reporte && (
-        <div className="tarjetas reportes">
-          <article className="tarjeta"><span className="sobre">MICROS</span><h3>{reporte.micros.total}</h3><p>Registrados en el sistema</p></article>
-          <article className="tarjeta"><span className="sobre">VIAJES ACTIVOS</span><h3>{reporte.viajesActivos}</h3><p>En circulación</p></article>
-          <article className="tarjeta"><span className="sobre">PASAJEROS HOY</span><h3>{reporte.pasajerosHoy}</h3><p>Abordajes registrados</p></article>
-          <article className="tarjeta"><span className="sobre">PAGOS CONFIRMADOS</span><h3>{reporte.pagos.confirmados}</h3><p>Total: {reporte.pagos.totalBs.toFixed(2)} Bs</p></article>
-          <article className="tarjeta"><span className="sobre">TRASBORDOS</span><h3>{reporte.trasbordos}</h3><p>De los cuales {reporte.emergencias} son emergencias</p></article>
-          <article className="tarjeta"><span className="sobre">OCUPACIÓN PROMEDIO</span><h3>{reporte.ocupacionPromedio.toFixed(1)}</h3><p>Pasajeros por viaje activo</p></article>
+      {pestana === 'reportes' && (
+        <div className="formularioSeccion">
+          <form className="formulario" onSubmit={(e) => { e.preventDefault(); void cargarSeccion('reportes'); }}>
+            <h3 className="ancho">Filtros del reporte</h3>
+            <label>Desde<input type="date" value={filtros.desde ?? ''} onChange={(e) => setFiltros({ ...filtros, desde: e.target.value || undefined })} /></label>
+            <label>Hasta<input type="date" value={filtros.hasta ?? ''} onChange={(e) => setFiltros({ ...filtros, hasta: e.target.value || undefined })} /></label>
+            <label>Línea<select value={filtros.lineaId ?? ''} onChange={(e) => setFiltros({ ...filtros, lineaId: e.target.value ? Number(e.target.value) : undefined })}>
+              <option value="">Todas las líneas</option>
+              {lineas.map((linea) => <option key={linea.id} value={linea.id}>{linea.nombre}</option>)}
+            </select></label>
+            <div className="formAcciones">
+              <button className="boton principal" disabled={procesando}>Aplicar filtros</button>
+              <button type="button" className="boton secundario" onClick={() => setFiltros({})}>Limpiar</button>
+              <button type="button" className="boton secundario" onClick={() => void ejecutar(() => api.exportarReporte(filtros), 'Reporte CSV descargado.')}>Exportar CSV</button>
+            </div>
+          </form>
+          {reporte && (
+            <div className="tarjetas reportes">
+              <article className="tarjeta"><span className="sobre">MICROS</span><h3>{reporte.micros.total}</h3><p>Registrados en el sistema</p></article>
+              <article className="tarjeta"><span className="sobre">VIAJES ACTIVOS</span><h3>{reporte.viajesActivos}</h3><p>En circulación</p></article>
+              <article className="tarjeta"><span className="sobre">PASAJEROS</span><h3>{reporte.pasajerosHoy}</h3><p>Abordajes registrados</p></article>
+              <article className="tarjeta"><span className="sobre">PAGOS CONFIRMADOS</span><h3>{reporte.pagos.confirmados}</h3><p>Total: {reporte.pagos.totalBs.toFixed(2)} Bs</p></article>
+              <article className="tarjeta"><span className="sobre">TRASBORDOS</span><h3>{reporte.trasbordos}</h3><p>De los cuales {reporte.emergencias} son emergencias</p></article>
+              <article className="tarjeta"><span className="sobre">OCUPACIÓN PROMEDIO</span><h3>{reporte.ocupacionPromedio.toFixed(1)}</h3><p>Pasajeros por viaje activo</p></article>
+            </div>
+          )}
         </div>
       )}
     </section>

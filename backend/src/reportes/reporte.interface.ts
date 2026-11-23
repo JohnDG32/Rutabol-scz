@@ -7,3 +7,9 @@ export interface ResumenReporte {
   emergencias: number;
   ocupacionPromedio: number;
 }
+
+export interface FiltrosReporte {
+  desde?: string;
+  hasta?: string;
+  lineaId?: number;
+}

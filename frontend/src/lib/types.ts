@@ -137,6 +137,12 @@ export interface Notificacion {
   creadoEn: string;
 }
 
+export interface FiltrosReporte {
+  desde?: string;
+  hasta?: string;
+  lineaId?: number;
+}
+
 export interface ResumenReporte {
   micros: { total: number; porEstado: Record<string, number> };
   viajesActivos: number;

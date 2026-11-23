@@ -100,7 +100,7 @@ export class MicrosService {
               u.lat, u.lng, u.registrado_en AS "ultimaPosicion",
               6371 * acos(LEAST(1, GREATEST(-1,
                 cos(radians($1)) * cos(radians(u.lat)) * cos(radians(u.lng) - radians($2))
-                + sin(radians($1)) * sin(radians(u.lat)))))) AS "distanciaKm"
+                + sin(radians($1)) * sin(radians(u.lat))))) AS "distanciaKm"
        FROM micros m JOIN ultimas u ON u.micro_id = m.id
        WHERE m.estado <> 'FUERA_DE_SERVICIO'
        ORDER BY u.registrado_en DESC`,

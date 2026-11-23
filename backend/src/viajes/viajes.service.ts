@@ -211,7 +211,9 @@ export class ViajesService {
     const validados: Array<{ anterior: Abordaje; pagoId: number }> = [];
     for (const abordajeId of dto.abordajeIds) {
       const anteriores = await this.db.query<Abordaje>(
-        "SELECT * FROM abordajes WHERE id = $1 AND viaje_id = $2 AND estado = 'A BORDO'",
+        `SELECT id, viaje_id AS "viajeId", usuario_id AS "usuarioId", categoria,
+                pago_id AS "pagoId", estado, registrado_en AS "registradoEn"
+         FROM abordajes WHERE id = $1 AND viaje_id = $2 AND estado = 'A BORDO'`,
         [abordajeId, viajeId]
       );
       const anterior = anteriores[0];

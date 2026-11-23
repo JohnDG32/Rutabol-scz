@@ -177,7 +177,7 @@ button {
 
 .seccionTitulo {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 22px;
@@ -493,6 +493,16 @@ footer {
 .rol-estudiante {background:#fef3c7; color:#92400e;}
 .muted {color:#667987; font-size:13px; line-height:1.5;}
 .subtitulo {margin:32px 0 12px; font-size:19px;}
+
+.mapaEsquematico {background:white; border:1px solid #e1e8ec; border-radius:14px; padding:14px; margin-bottom:14px;}
+.mapaEsquematico svg {width:100%; max-width:620px; height:auto; display:block; margin:0 auto;}
+.mapaEsquematico p {margin:8px 0 0;}
+.mapaFondo {fill:#f2f8f7;}
+.mapaRejilla {stroke:#d3e4e0; stroke-width:1; stroke-dasharray:4 5;}
+.mapaRadio {fill:none; stroke:#0f766e; stroke-width:1; stroke-dasharray:3 3; opacity:.5;}
+.mapaOrigen {fill:#0f172a; stroke:white; stroke-width:2;}
+.mapaPunto {fill:white; stroke:#94a3b8; stroke-width:1;}
+.mapaEtiqueta {font-size:11px; font-weight:700; fill:#334155;}
 
 .panelLista {background:white; border:1px solid #e1e8ec; border-radius:14px; overflow:hidden;}
 .fila {display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; border-bottom:1px solid #e9eff2; flex-wrap:wrap;}

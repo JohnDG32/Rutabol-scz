@@ -58,6 +58,15 @@ export default function Home() {
   }, []);
   useEffect(() => { if (!revisandoSesion) void cargarViajes(usuario); }, [usuario, revisandoSesion, cargarViajes]);
 
+  // RF-06/RNF-16: refresco automático para reflejar posiciones y cambios de estado.
+  useEffect(() => {
+    const temporizador = setInterval(() => {
+      void cargarCatalogo();
+      if (!revisandoSesion) void cargarViajes(usuario);
+    }, 10000);
+    return () => clearInterval(temporizador);
+  }, [cargarCatalogo, cargarViajes, usuario, revisandoSesion]);
+
   const esOperador = usuario?.rol === 'ADMIN' || usuario?.rol === 'CONDUCTOR';
   const esPasajero = usuario?.rol === 'PASAJERO' || usuario?.rol === 'ESTUDIANTE';
 
@@ -93,6 +102,7 @@ export default function Home() {
           <p className="advertencia">
             Proyecto académico: líneas, posiciones GPS y pasarela de pagos son simulados. No representan operación oficial.
           </p>
+          <p className="muted">La disponibilidad y los viajes se actualizan automáticamente cada 10 segundos.</p>
         </div>
       </section>
 

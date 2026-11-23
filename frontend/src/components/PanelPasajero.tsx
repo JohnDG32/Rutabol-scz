@@ -32,7 +32,11 @@ export function PanelPasajero({ viajes, avisar }: Props) {
     }
   }, [avisar]);
 
-  useEffect(() => { void cargar(); }, [cargar]);
+  useEffect(() => {
+    void cargar();
+    const temporizador = setInterval(() => void cargar(), 15000);
+    return () => clearInterval(temporizador);
+  }, [cargar]);
 
   async function ejecutar(accion: () => Promise<unknown>, mensaje: string) {
     setProcesando(true);
