@@ -154,6 +154,8 @@ cd ../frontend; npm run build
 
 Ambos comandos pasan en la versión entregada. La prueba de ejecución con PostgreSQL requiere Docker Desktop en funcionamiento.
 
+> **No ejecute `npm run build` en el frontend mientras `npm run dev` esté activo**: ambos usan la carpeta `.next` y el build puede dejar chunks incompletos (`Cannot find module './571.js'`). Si eso ocurre, detenga el dev server, elimine `frontend\.next` y vuelva a iniciar `npm run dev`. Para compilar y servir en producción, detenga primero el dev server y use `npm run build` + `npm run start`.
+
 ## Prueba integral de extremo a extremo
 
 Con Docker, la API y la web en ejecución:
