@@ -348,6 +348,37 @@ powershell -ExecutionPolicy Bypass -File tests\verificar-fotos.ps1
 
 Debe terminar con `TOTAL: 5  PASS: 5  FAIL: 0`. La prueba crea un estudiante temporal y lo elimina al final.
 
+### 9.5 Pagos con Stripe (opcional)
+
+Si no hacés nada, el proyecto sigue usando la **pasarela simulada**: funciona sin internet y sin credenciales. Stripe es un extra y solo se activa si querés probar un pago alojado real en modo de prueba.
+
+1. Entrá a tu cuenta de Stripe, activá el **modo de prueba (test)** y copiá una clave secreta de prueba (`sk_test_...`). **No uses una clave real (`sk_live_...`).**
+2. Abrí `backend\.env` y agregá o descomentá estas líneas:
+
+   ```dotenv
+   PAGOS_MODO=STRIPE
+   STRIPE_SECRET_KEY=sk_test_tu_clave_de_prueba
+   STRIPE_MONEDA=usd
+   STRIPE_TIPO_CAMBIO=1
+   ```
+
+   La tarifa sigue calculándose en Bs; `STRIPE_TIPO_CAMBIO=1` presenta el mismo número en la moneda configurada. Stripe no define un importe mínimo para `BOB`, por eso el ejemplo usa `usd`. Es solo para la demo, no es un tipo de cambio real.
+3. Guardá el archivo y **reiniciá la API** (en la terminal 1: `Ctrl + C` y otra vez `npm run start:dev`). La web no hace falta reiniciarla.
+4. Ingresá como `pasajero1`. En **Pasajero** verás el texto *Pagos con Stripe (modo de prueba)* y el botón **Pagar con Stripe**. El campo *Token simulado de tarjeta* desaparece: no hace falta escribir ningún dato de tarjeta en nuestra web.
+5. Elegí el viaje y la categoría y presioná **Pagar con Stripe**. Se abre una página de Stripe en modo de prueba. Usá una tarjeta de prueba de Stripe, por ejemplo `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC. **Nunca ingreses una tarjeta real.**
+6. Después de pagar, Stripe te devuelve a `https://www.rutabol.test/#pasajero`. La web consulta la sesión y marca el pago como **CONFIRMADO** sola. Si cancelás, vuelve al panel y el pago queda pendiente.
+7. Ya podés registrar el abordaje desde el panel del conductor, igual que con el pago simulado.
+
+Si querés confirmar aunque el navegador se cierre, configurá un webhook. Como `www.rutabol.test` usa un certificado local, Stripe no puede llamarlo directamente: necesitás un túnel público (por ejemplo, `stripe listen --forward-to localhost:3001/api/pagos/webhook`) y copiar el secreto `whsec_...` en `STRIPE_WEBHOOK_SECRET`. Es opcional.
+
+Para comprobar el cableado sin gastar ni usar credenciales:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\verificar-stripe.ps1
+```
+
+Arranca una API temporal en el puerto 3011 con una clave `sk_test_` inválida, verifica que el paso por Checkout se intente y que el error vuelva como `400`, y deja la API principal en modo simulado. Debe terminar con `TOTAL: 10  PASS: 10  FAIL: 0`.
+
 ---
 
 ## 10. Prueba completa (45 comprobaciones)

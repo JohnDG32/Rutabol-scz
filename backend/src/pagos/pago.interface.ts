@@ -8,9 +8,10 @@ export interface Pago {
   viajeId: number;
   monto: number;
   categoria: CategoriaTarifa;
-  metodo: 'SIMULADO' | 'TARJETA';
+  metodo: 'SIMULADO' | 'TARJETA' | 'STRIPE';
   estado: EstadoPago;
   referencia: string;
+  stripeSesionId: string | null;
   creadoEn: string;
   confirmadoEn: string | null;
 }

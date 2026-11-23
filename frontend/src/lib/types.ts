@@ -76,9 +76,10 @@ export interface Pago {
   viajeId: number;
   monto: number;
   categoria: Categoria;
-  metodo: 'SIMULADO' | 'TARJETA';
+  metodo: 'SIMULADO' | 'TARJETA' | 'STRIPE';
   estado: 'PENDIENTE' | 'CONFIRMADO' | 'RECHAZADO';
   referencia: string;
+  stripeSesionId: string | null;
   creadoEn: string;
   confirmadoEn: string | null;
 }

@@ -86,10 +86,15 @@ export const api = {
   verificarEstudiante: (id: number) => request<Estudiante>(`/estudiantes/${id}/verificar`, { method: 'POST' }),
   eliminarEstudiante: (id: number) => request<void>(`/estudiantes/${id}`, { method: 'DELETE' }),
 
-  // Pagos (pasarela simulada)
+  // Pagos (simulado por defecto; Stripe sandbox opcional)
+  configPagos: () => request<{ modo: 'SIMULADO' | 'STRIPE'; moneda: string }>('/pagos/config'),
   crearPago: (viajeId: number, categoria: Categoria, token: string) =>
     request<Pago>('/pagos', json('POST', { viajeId, categoria, token })),
   confirmarPago: (id: number) => request<Pago>(`/pagos/${id}/confirmar`, { method: 'POST' }),
+  crearCheckout: (id: number) =>
+    request<{ pagoId: number; sesionId: string; url: string }>(`/pagos/${id}/checkout`, { method: 'POST' }),
+  confirmarStripe: (id: number, sessionId: string) =>
+    request<Pago>(`/pagos/${id}/confirmar-stripe`, json('POST', { sessionId })),
   misPagos: () => request<Pago[]>('/pagos/mios'),
 
   // Viajes, control de pasajeros, trasbordos y emergencias

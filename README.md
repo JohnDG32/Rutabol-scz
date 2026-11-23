@@ -191,6 +191,32 @@ Las fotos de identificación de los estudiantes ya no se guardan como `data:imag
 - Al editar o eliminar un estudiante se borra el archivo que dejó de usarse.
 - El panel de administración muestra una miniatura de la foto en la pestaña *estudiantes*.
 
+## Extra: pasarela Stripe en modo de prueba
+
+La pasarela simulada sigue siendo el **modo por defecto** y no necesita internet. Stripe se activa solo si se configuran variables de entorno; nunca se usa una clave real ni se almacenan datos de tarjeta.
+
+```dotenv
+PAGOS_MODO=STRIPE
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_MONEDA=usd
+STRIPE_TIPO_CAMBIO=1
+# Opcional, solo con un túnel público:
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+- `STRIPE_MONEDA` es la moneda enviada a Checkout. Stripe no publica un importe mínimo para `BOB`, así que la demo usa `usd` por defecto; `STRIPE_TIPO_CAMBIO` convierte el importe en Bs al número presentado en la pasarela (es solo informativo, no es un tipo de cambio real).
+- `GET /api/pagos/config` devuelve `{ "modo": "SIMULADO" | "STRIPE", "moneda": "usd" }` y el panel del pasajero muestra el botón correspondiente. En modo STRIPE se oculta el token simulado.
+- `POST /api/pagos/:id/checkout` crea una Checkout Session y guarda su id en `pagos.stripe_sesion_id`. `POST /api/pagos/:id/confirmar-stripe` consulta el estado real en Stripe antes de marcar el pago. El endpoint antiguo `POST /api/pagos/:id/confirmar` sigue funcionando solo para pagos simulados.
+- La URL de éxito por defecto conserva `{CHECKOUT_SESSION_ID}`; al volver, el frontend confirma el pago automáticamente. La URL de cancelación vuelve al panel sin cambiar el estado.
+- `POST /api/pagos/webhook` acepta `checkout.session.completed` y `checkout.session.expired` con firma verificada. Es **opcional**: `www.rutabol.test` usa un certificado mkcert local, así que Stripe no puede llamarlo; para usarlo hace falta un túnel público (por ejemplo, `stripe listen`).
+- La base acepta `pagos.metodo = 'STRIPE'` y la columna `stripe_sesion_id`. En instalaciones existentes se aplica `database/03_migracion_stripe.sql`; en las nuevas ya viene en `01_init.sql`.
+
+Verificación del cableado (usa una clave `sk_test_` inválida en una API aislada, sin tocar la instancia principal):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests/verificar-stripe.ps1
+```
+
 ## Copias de seguridad
 
 ```powershell
@@ -236,6 +262,8 @@ powershell -ExecutionPolicy Bypass -File tests/prueba-carga.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-restore.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-gps-real.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-websocket.ps1
+powershell -ExecutionPolicy Bypass -File tests/verificar-fotos.ps1
+powershell -ExecutionPolicy Bypass -File tests/verificar-stripe.ps1
 ```
 
 `prueba-carga.ps1` lanza 20 usuarios concurrentes × 5 iteraciones × 4 endpoints públicos (400 peticiones) y exige 0 errores y p95 ≤ 3000 ms. Resultado obtenido: **0 errores, promedio 87 ms, p95 124 ms, máximo 1014 ms**. Acepta `-Usuarios`, `-Iteraciones` y `-BaseUrl` como parámetros.

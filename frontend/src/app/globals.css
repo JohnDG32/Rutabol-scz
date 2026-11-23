@@ -496,6 +496,8 @@ footer {
 
 .fotoEstudiante {width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid #e1e8ec; background:#f2f8f7;}
 
+.avisoPago {border-left:3px solid #0f8a7a; padding-left:10px; margin:8px 0;}
+
 .mapaBloque {margin-bottom:14px;}
 .mapaCabecera {display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px;}
 .mapaRealWrap {background:white; border:1px solid #e1e8ec; border-radius:14px; overflow:hidden;}

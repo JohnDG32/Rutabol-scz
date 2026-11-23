@@ -22,6 +22,7 @@ services:
       - ./database/01_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
       - ./database/02_migracion_rutabol.sql:/docker-entrypoint-initdb.d/02_migracion_rutabol.sql:ro
       - ./database/02_migracion_rutabol.sql:/rutabol-migration.sql:ro
+      - ./database/03_migracion_stripe.sql:/docker-entrypoint-initdb.d/03_migracion_stripe.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U micros -d micros_scz"]
       interval: 5s

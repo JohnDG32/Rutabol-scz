@@ -13,7 +13,8 @@ async function bootstrap() {
   const secret = process.env.SESSION_SECRET;
   if (!secret || secret.length < 32) throw new Error('SESSION_SECRET debe tener al menos 32 caracteres');
 
-  const app = await NestFactory.create(AppModule);
+  // rawBody permite verificar la firma del webhook de Stripe sobre los bytes originales.
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const database = app.get(DatabaseService);
   await database.query('SELECT 1');
 

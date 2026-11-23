@@ -13,7 +13,7 @@ El sistema cubre los 24 requerimientos funcionales y los 18 no funcionales del e
 - **Backend REST (NestJS):** 12 módulos (autenticación, líneas, micros, conductores, tarifas, estudiantes, pagos, viajes, notificaciones, reportes, auditoría y base de datos).
 - **Frontend web (Next.js):** catálogo público, consulta de tarifas, micros cercanos, panel del conductor, panel del pasajero/estudiante y panel administrativo.
 - **Persistencia (PostgreSQL):** esquema completo con claves foráneas, restricciones `CHECK`, índices y datos de demostración.
-- **Servicios simulados:** posiciones GPS de demostración, pasarela de pagos y fotografías de estudiantes (data URL). El conductor puede enviar su posición real desde el navegador y el sistema registra el origen de cada posición. No se almacenan datos reales de tarjetas.
+- **Servicios simulados:** posiciones GPS de demostración, pasarela de pagos y fotografías de estudiantes (archivos en disco). El conductor puede enviar su posición real desde el navegador y el sistema registra el origen de cada posición. No se almacenan datos reales de tarjetas. Como extra opcional, la pasarela puede cambiarse a Stripe en modo de prueba sin modificar el flujo simulado por defecto.
 
 > Los nombres de líneas, placas, posiciones y usuarios son ficticios. No representan información oficial de transporte.
 
@@ -170,6 +170,7 @@ Entorno: Docker Desktop con PostgreSQL, Caddy + mkcert, API en `:3001` y web en 
 | GPS real / origen de posición | `tests/verificar-gps-real.ps1` | **3/3 PASS** (`GPS_NAVEGADOR`, etiqueta en cercanos, default `SIMULADO`) |
 | WebSocket en tiempo real | `tests/verificar-websocket.ps1` | **4/4 PASS**, `transport=websocket` por HTTPS |
 | Fotografías fuera de la BD | `tests/verificar-fotos.ps1` | **5/5 PASS** (URL de archivo, archivo en disco, HTTPS, validación por bytes, 0 data URLs) |
+| Pasarela Stripe (extra) | `tests/verificar-stripe.ps1` | **10/10 PASS** (modo simulado intacto, esquema, API aislada, checkout con clave inválida, pago pendiente) |
 | Carga | `tests/prueba-carga.ps1` | 400 peticiones, **0 errores**, promedio 87 ms, p95 124 ms |
 | Copia de seguridad | `tests/verificar-restore.ps1` | `pg_dump` + restore en base vacía: **14/14 tablas con conteos idénticos** |
 | HTTPS y sesión | `curl.exe --ssl-no-revoke -i https://www.rutabol.test/api/auth/login` | Web 200, `Set-Cookie: rutabol.sid=...; HttpOnly; Secure; SameSite=Lax` |
@@ -190,3 +191,4 @@ Estas mejoras **no son requerimientos de la Actividad 01**; se agregaron para ac
 - Actualizaciones en tiempo real por Socket.IO, con polling de 60 s como respaldo.
 - **Mapa callejero real con Leaflet + OpenStreetMap** en *Micros cercanos*, mostrando el radio de 5 km, un marcador por micro y su distancia. Si no hay internet, se avisa y se puede usar el mapa esquemático anterior (también seleccionable manualmente).
 - **Fotografías de estudiantes en disco**, con migración automática de data URLs, validación por bytes y miniaturas en el panel administrativo. PostgreSQL solo conserva la URL del archivo.
+- **Pasarela Stripe en modo de prueba**, activable con `PAGOS_MODO=STRIPE` y una clave `sk_test_`. El modo simulado sigue siendo el predeterminado; Checkout usa una URL alojada, la confirmación consulta la sesión real y el webhook firmado es opcional. No se guardan datos de tarjeta.
