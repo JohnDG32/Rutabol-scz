@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '@/lib/api';
+import { obtenerSocket } from '@/lib/socket';
 import type {
   Categoria, Conductor, ConductorInput, Estudiante, Linea, Micro, MicroInput,
   FiltrosReporte, ResumenReporte, Tarifa,
@@ -71,6 +72,13 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
   }, [avisar, filtros]);
 
   useEffect(() => { void cargarSeccion(pestana); }, [pestana, cargarSeccion]);
+
+  useEffect(() => {
+    const socket = obtenerSocket();
+    const alCambiar = () => { void cargarSeccion(pestana); };
+    socket.on('cambios', alCambiar);
+    return () => { socket.off('cambios', alCambiar); };
+  }, [cargarSeccion, pestana]);
 
   async function ejecutar(accion: () => Promise<unknown>, mensaje: string, recargarGeneral = false) {
     setProcesando(true);

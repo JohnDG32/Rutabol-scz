@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { obtenerSocket } from '@/lib/socket';
 import type { Categoria, Historial, Notificacion, Pago, Viaje } from '@/lib/types';
 
 interface Props {
@@ -34,8 +35,13 @@ export function PanelPasajero({ viajes, avisar }: Props) {
 
   useEffect(() => {
     void cargar();
-    const temporizador = setInterval(() => void cargar(), 15000);
-    return () => clearInterval(temporizador);
+    const temporizador = setInterval(() => void cargar(), 60000);
+    const socket = obtenerSocket();
+    socket.on('cambios', cargar);
+    return () => {
+      clearInterval(temporizador);
+      socket.off('cambios', cargar);
+    };
   }, [cargar]);
 
   async function ejecutar(accion: () => Promise<unknown>, mensaje: string) {

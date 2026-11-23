@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { obtenerUbicacion, ubicacionDemo, type OrigenUbicacion } from '@/lib/geolocalizacion';
+import { obtenerSocket } from '@/lib/socket';
 import type { Categoria, Linea, Micro, MicroCercano, Tarifa } from '@/lib/types';
 
 interface Props {
@@ -24,6 +25,7 @@ export function Consultas({ lineas, micros, avisar }: Props) {
   const [origenUbicacion, setOrigenUbicacion] = useState<OrigenUbicacion>('DEMO');
   const [precision, setPrecision] = useState<number | null>(null);
   const [buscando, setBuscando] = useState(false);
+  const [consultado, setConsultado] = useState(false);
 
   const microsFiltrados = useMemo(() => micros.filter((micro) => {
     const coincideLinea = filtro === 'todas' || micro.lineaId === Number(filtro);
@@ -64,6 +66,7 @@ export function Consultas({ lineas, micros, avisar }: Props) {
     try {
       const datos = await api.microsCercanos(ubicacion.lat, ubicacion.lng, 5);
       setCercanos(datos);
+      setConsultado(true);
       avisar(datos.length ? `${datos.length} micros dentro de 5 km.` : 'No hay micros con posición reciente en 5 km.');
     } catch (e) {
       avisar(e instanceof Error ? e.message : 'No se pudo consultar la ubicación');
@@ -88,6 +91,19 @@ export function Consultas({ lineas, micros, avisar }: Props) {
   function usarDemo() {
     void cargarCercanos(ubicacionDemo());
   }
+
+  // Al llegar un cambio del backend se recalcula la lista con la última ubicación consultada.
+  useEffect(() => {
+    if (!consultado) return;
+    const socket = obtenerSocket();
+    const alCambiar = () => {
+      void api.microsCercanos(centro.lat, centro.lng, 5)
+        .then(setCercanos)
+        .catch(() => undefined);
+    };
+    socket.on('cambios', alCambiar);
+    return () => { socket.off('cambios', alCambiar); };
+  }, [centro, consultado]);
 
   return (
     <>

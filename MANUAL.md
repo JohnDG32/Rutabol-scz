@@ -314,6 +314,12 @@ Cada posición guardada lleva un origen: `SIMULADO` (por defecto), `MANUAL` (esc
 
 > Las posiciones de los micros de demostración siguen siendo simuladas. Esta opción agrega el GPS real sin sacar el modo demo.
 
+### 9.2 Cambios en tiempo real
+
+Cuando un conductor envía una posición, o el administrador cambia una tarifa o crea un viaje, **las demás pestañas se actualizan solas** en cuestión de milisegundos. Eso es WebSocket (Socket.IO), que viaja por el mismo `https://www.rutabol.test` que la página, gracias a la regla `/socket.io/*` de Caddy.
+
+Si por algún motivo el WebSocket no conecta, la página sigue actualizándose cada **60 segundos** (polling). No hay que configurar nada extra: abra dos pestañas con usuarios distintos y pruebe a enviar una posición desde una; en la otra verá el cambio sin recargar.
+
 ---
 
 ## 10. Prueba completa (45 comprobaciones)
@@ -332,14 +338,15 @@ TOTAL: 45  PASS: 45  FAIL: 0
 
 El script limpia las tablas de operación antes y después, por lo que puede ejecutarse las veces que quiera. Ojo: borra pagos/viajes de demostración anteriores, no solo los que crea en esa ejecución.
 
-### 10.1 Otras dos verificaciones (opcional pero recomendado)
+### 10.1 Otras verificaciones (opcional pero recomendado)
 
-Mientras Docker y la API sigan corriendo:
+Mientras Docker, la API y la web sigan corriendo:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tests\prueba-carga.ps1
 powershell -ExecutionPolicy Bypass -File tests\verificar-restore.ps1
 powershell -ExecutionPolicy Bypass -File tests\verificar-gps-real.ps1
+powershell -ExecutionPolicy Bypass -File tests\verificar-websocket.ps1
 ```
 
 El primero simula 20 usuarios al mismo tiempo y mide cuánto tarda cada respuesta. Debe terminar con `PASS - p95 <= 3000 ms y sin errores`. En esta máquina dio 400 peticiones, 0 errores, promedio 87 ms y p95 124 ms.
@@ -347,6 +354,8 @@ El primero simula 20 usuarios al mismo tiempo y mide cuánto tarda cada respuest
 El segundo hace una copia de la base, la restaura en una base vacía temporal y compara las 14 tablas. Debe terminar con `PASS - el restore reprodujo los datos exactamente`. Después borra la base temporal sola.
 
 El tercero comprueba el GPS real a nivel API: envía una posición con origen `GPS_NAVEGADOR`, la busca en `micros/cercanos` y verifica que una posición sin origen siga siendo `SIMULADO`. Debe terminar con `TOTAL: 3  PASS: 3  FAIL: 0`.
+
+El cuarto conecta un cliente WebSocket por HTTPS, envía una posición y confirma que el evento `cambios` llega al navegador. Debe terminar con `TOTAL: 4  PASS: 4  FAIL: 0` y `transport=websocket`.
 
 Si querés una carga más liviana: `powershell -ExecutionPolicy Bypass -File tests\prueba-carga.ps1 -Usuarios 5 -Iteraciones 2`.
 

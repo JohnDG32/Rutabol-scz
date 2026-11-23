@@ -104,7 +104,7 @@ Usuarios de demostración creados al iniciar el backend: `admin`, `conductor1`, 
 | RNF-13 | Auditoría | `auditoria` + `AuditoriaInterceptor` registran POST/PATCH/DELETE exitosos con actor y detalles saneados |
 | RNF-14 | Escalabilidad geográfica | `lineas` admite nuevas zonas y municipios; el modelo no está atado a una sola ciudad |
 | RNF-15 | Seguridad de pagos | Solo se envía un token simulado; nunca se guarda número de tarjeta |
-| RNF-16 | Actualización de información | Cada envío de GPS actualiza la posición y el estado del micro; la interfaz se recarga tras cada operación |
+| RNF-16 | Actualización de información | Cada envío de GPS actualiza la posición y el estado del micro; un evento Socket.IO recarga la interfaz al instante, con polling de 60 s como respaldo |
 | RNF-17 | Idioma | Español en toda la interfaz y en los mensajes de validación |
 | RNF-18 | Adaptabilidad | CSS con breakpoints de 950 px y 600 px |
 

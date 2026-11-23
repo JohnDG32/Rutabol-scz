@@ -163,6 +163,14 @@ Las posiciones de demostración siguen siendo simuladas; este cambio agrega la o
 
 Listado completo y trazabilidad RF/RNF/RN: [`REQUERIMIENTOS.md`](REQUERIMIENTOS.md).
 
+## Actualización en tiempo real
+
+Después de cada operación de escritura correcta (`POST`/`PATCH`/`PUT`/`DELETE`), el interceptor de auditoría emite un evento `cambios` por **Socket.IO** (`backend/src/realtime/`). Los navegadores conectados recargan el catálogo, los viajes, las notificaciones y la lista de micros cercanos al instante.
+
+- Caddy redirige `/socket.io/*` hacia la API en el mismo `https://www.rutabol.test`, así que no hay que abrir puertos ni configurar otra URL.
+- El cliente (`frontend/src/lib/socket.ts`) usa el mismo origen, reintenta la conexión y baja a polling HTTP si el WebSocket no está disponible.
+- Se conserva **polling cada 60 segundos** como respaldo (antes era cada 10 s). Es decir: WebSocket para inmediatez, polling para resiliencia.
+
 ## Copias de seguridad
 
 ```powershell
@@ -199,14 +207,15 @@ powershell -ExecutionPolicy Bypass -File tests/verificar-flujo.ps1
 
 Ejecuta 45 comprobaciones sobre catálogo público, seguridad, roles, capacidad, GPS, tarifas, pagos, trasbordos, emergencias, notificaciones, historial y reportes (incluye filtros y exportación CSV). Limpia las tablas de operación al empezar y al terminar, elimina los micros temporales `QA*` y restaura el micro demo, así que puede ejecutarse varias veces seguidas. Imprime un resumen con PASS/FAIL y termina con código 1 si hay fallos.
 
-## Verificación de rendimiento, recuperación y GPS
+## Verificación de rendimiento, recuperación, GPS y WebSocket
 
-Con Docker y la API en ejecución:
+Con Docker, la API y la web en ejecución:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tests/prueba-carga.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-restore.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-gps-real.ps1
+powershell -ExecutionPolicy Bypass -File tests/verificar-websocket.ps1
 ```
 
 `prueba-carga.ps1` lanza 20 usuarios concurrentes × 5 iteraciones × 4 endpoints públicos (400 peticiones) y exige 0 errores y p95 ≤ 3000 ms. Resultado obtenido: **0 errores, promedio 87 ms, p95 124 ms, máximo 1014 ms**. Acepta `-Usuarios`, `-Iteraciones` y `-BaseUrl` como parámetros.
@@ -214,3 +223,5 @@ powershell -ExecutionPolicy Bypass -File tests/verificar-gps-real.ps1
 `verificar-restore.ps1` hace `pg_dump`, crea una base temporal vacía, restaura el volcado y compara el conteo de las 14 tablas; al final elimina la base temporal. Resultado obtenido: **conteos idénticos en las 14 tablas (PASS)**.
 
 `verificar-gps-real.ps1` envía una posición con `origen=GPS_NAVEGADOR`, comprueba que aparece etiquetada en `/micros/cercanos` y verifica que una petición sin `origen` siga defaultando a `SIMULADO`. Resultado obtenido: **3/3 PASS**.
+
+`verificar-websocket.ps1` conecta un cliente Socket.IO por `https://www.rutabol.test`, hace login, envía una posición y comprueba que el evento `cambios` llega al navegador. Usa `--use-system-ca` para validar el certificado mkcert instalado. Resultado obtenido: **4/4 PASS** (`transport=websocket`).

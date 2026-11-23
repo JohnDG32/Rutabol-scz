@@ -2,6 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import { Observable, tap } from 'rxjs';
 import type { Request } from 'express';
 import { AuditoriaService } from './auditoria.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 
 const CAMPOS_SENSIBLES = new Set(['password', 'passwordHash', 'token', 'foto', 'fotoUrl', 'secret']);
 
@@ -17,7 +18,10 @@ function sanitizar(body: unknown): Record<string, unknown> {
 /** RNF-13: registra las operaciones importantes AFTER de forma exitosa. */
 @Injectable()
 export class AuditoriaInterceptor implements NestInterceptor {
-  constructor(private readonly auditoria: AuditoriaService) {}
+  constructor(
+    private readonly auditoria: AuditoriaService,
+    private readonly realtime: RealtimeGateway,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const req = context.switchToHttp().getRequest<Request>();
@@ -39,6 +43,11 @@ export class AuditoriaInterceptor implements NestInterceptor {
           detalle: sanitizar(req.body),
           usuario: req.session?.username,
         }).catch(() => undefined);
+
+        // RF-06/RNF-16: el cambio ya fue persistido, se lo avisa a los navegadores conectados.
+        if (entidad !== 'auth') {
+          this.realtime.emitirCambio({ entidad, accion: metodo, usuario: req.session?.username });
+        }
       })
     );
   }

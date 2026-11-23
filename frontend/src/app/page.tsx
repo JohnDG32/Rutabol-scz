@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { obtenerSocket } from '@/lib/socket';
 import type { Linea, Micro, Usuario, Viaje } from '@/lib/types';
 import { Acceso } from '@/components/Acceso';
 import { Consultas } from '@/components/Consultas';
@@ -58,12 +59,29 @@ export default function Home() {
   }, []);
   useEffect(() => { if (!revisandoSesion) void cargarViajes(usuario); }, [usuario, revisandoSesion, cargarViajes]);
 
-  // RF-06/RNF-16: refresco automático para reflejar posiciones y cambios de estado.
+  // RF-06/RNF-16: WebSocket para cambios inmediatos; polling cada 60 s como respaldo.
+  useEffect(() => {
+    const socket = obtenerSocket();
+    let espera: ReturnType<typeof setTimeout> | undefined;
+    const alCambiar = () => {
+      clearTimeout(espera);
+      espera = setTimeout(() => {
+        void cargarCatalogo();
+        if (!revisandoSesion) void cargarViajes(usuario);
+      }, 150);
+    };
+    socket.on('cambios', alCambiar);
+    return () => {
+      clearTimeout(espera);
+      socket.off('cambios', alCambiar);
+    };
+  }, [cargarCatalogo, cargarViajes, usuario, revisandoSesion]);
+
   useEffect(() => {
     const temporizador = setInterval(() => {
       void cargarCatalogo();
       if (!revisandoSesion) void cargarViajes(usuario);
-    }, 10000);
+    }, 60000);
     return () => clearInterval(temporizador);
   }, [cargarCatalogo, cargarViajes, usuario, revisandoSesion]);
 
@@ -102,7 +120,7 @@ export default function Home() {
           <p className="advertencia">
             Proyecto académico: líneas, posiciones GPS y pasarela de pagos son simulados. No representan operación oficial.
           </p>
-          <p className="muted">La disponibilidad y los viajes se actualizan automáticamente cada 10 segundos.</p>
+          <p className="muted">La disponibilidad y los viajes se actualizan en tiempo real por WebSocket (con respaldo cada 60 segundos).</p>
         </div>
       </section>
 

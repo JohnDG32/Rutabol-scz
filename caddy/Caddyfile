@@ -10,6 +10,11 @@ www.rutabol.test {
 		reverse_proxy host.docker.internal:3001
 	}
 
+	# WebSocket de actualizaciones en tiempo real (socket.io usa /socket.io por defecto).
+	handle /socket.io/* {
+		reverse_proxy host.docker.internal:3001
+	}
+
 	handle {
 		reverse_proxy host.docker.internal:3000
 	}
