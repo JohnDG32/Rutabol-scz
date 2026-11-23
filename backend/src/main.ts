@@ -37,6 +37,6 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   await app.listen(Number(process.env.PORT) || 3001);
-  console.log('API RUTABOL-SCZ disponible en http://localhost:3001/api');
+  console.log('API RUTABOL-SCZ disponible en http://www.rutabol.test:3001/api');
 }
 bootstrap().catch(err => { console.error(err); process.exit(1); });

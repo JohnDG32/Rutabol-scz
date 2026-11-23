@@ -4,7 +4,7 @@ import type {
   ResultadoTrasbordo, Tarifa, Usuario, Viaje,
 } from './types';
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://www.rutabol.test:3001/api';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   let response: Response;

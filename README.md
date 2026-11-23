@@ -15,6 +15,16 @@ Sistema web para mejorar el control, la seguridad, la organización y la transpa
 
 ## Puesta en marcha
 
+### 0. Nombre de la página
+
+La web se abre en **http://www.rutabol.test:3000** y la API en **http://www.rutabol.test:3001/api**. Para que Windows resuelva ese nombre, agregue una línea al archivo `C:\Windows\System32\drivers\etc\hosts` **desde un PowerShell como Administrador**:
+
+```powershell
+Add-Content C:\Windows\System32\drivers\etc\hosts "`n127.0.0.1  www.rutabol.test  api.rutabol.test"
+```
+
+El DNS BIND de `dns/` ya publica la zona `rutabol.test` (registros A `www` y `api` → `127.0.0.1`), pero el navegador no la consulta a menos que se cambie el resolvedor del sistema. El archivo `hosts` es la forma más simple de probar sin modificar la configuración de red. Ver [`README-DNS.md`](README-DNS.md).
+
 ### 1. Base de datos
 
 Desde la raíz del repositorio:
@@ -40,11 +50,11 @@ npm install
 npm run start:dev
 ```
 
-Escucha en `http://localhost:3001/api`. El archivo `backend/.env` debe contener:
+Escucha en `http://www.rutabol.test:3001/api`. El archivo `backend/.env` debe contener:
 
 ```dotenv
 PORT=3001
-FRONTEND_ORIGIN=http://localhost:3000
+FRONTEND_ORIGIN=http://www.rutabol.test:3000
 DATABASE_URL=postgresql://micros:<PASSWORD>@localhost:5433/micros_scz
 SESSION_SECRET=<secreto-de-al-menos-32-caracteres>
 ADMIN_USERNAME=admin
@@ -62,10 +72,10 @@ npm install
 npm run dev
 ```
 
-Visite **http://localhost:3000**. La URL de la API se configura en `frontend/.env.local`:
+Visite **http://www.rutabol.test:3000**. La URL de la API se configura en `frontend/.env.local`:
 
 ```dotenv
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_API_URL=http://www.rutabol.test:3001/api
 ```
 
 ## Usuarios de demostración
