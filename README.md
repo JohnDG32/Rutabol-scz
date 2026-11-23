@@ -6,6 +6,8 @@ Sistema web para mejorar el control, la seguridad, la organización y la transpa
 
 > Proyecto académico con datos ficticios. GPS, pasarela de pagos y fotografías son simulados; no representan operación oficial.
 
+> **¿Querés correrlo desde cero?** Seguí el [`MANUAL.md`](MANUAL.md), paso a paso y sin omitir nada.
+
 ## Tecnologías
 
 - **Frontend:** Next.js 15 + React 19 + TypeScript.
