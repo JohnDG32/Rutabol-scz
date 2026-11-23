@@ -1,4 +1,13 @@
 services:
+  dns:
+    image: internetsystemsconsortium/bind9:9.20
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:53:53/udp"
+      - "127.0.0.1:53:53/tcp"
+    volumes:
+      - ./dns/named.conf:/etc/bind/named.conf:ro
+      - ./dns/zones:/etc/bind/zones:ro
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
