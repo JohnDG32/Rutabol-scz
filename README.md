@@ -11,19 +11,32 @@ Sistema web para mejorar el control, la seguridad, la organización y la transpa
 - **Frontend:** Next.js 15 + React 19 + TypeScript.
 - **Backend:** NestJS 11 + TypeScript + `class-validator`, `bcryptjs`, `express-session` con `connect-pg-simple`.
 - **Base de datos:** PostgreSQL 17 en Docker Compose.
-- **Infraestructura local:** DNS BIND9 opcional (ver `README-DNS.md`).
+- **Infraestructura local:** DNS BIND9 opcional (ver `README-DNS.md`) y Caddy 2 como proxy inverso con HTTPS local.
+- **Certificados:** generados con `mkcert`; la autoridad local queda instalada en la computadora y los archivos de `certs/` no se versionan.
 
 ## Puesta en marcha
 
-### 0. Nombre de la página
+### 0. Nombre de la página y HTTPS
 
-La web se abre en **http://www.rutabol.test:3000** y la API en **http://www.rutabol.test:3001/api**. Para que Windows resuelva ese nombre, agregue una línea al archivo `C:\Windows\System32\drivers\etc\hosts` **desde un PowerShell como Administrador**:
+La aplicación se abre en **https://www.rutabol.test** y la API en **https://www.rutabol.test/api** (sin puertos). Caddy escucha en 80/443 y redirige HTTP → HTTPS; por dentro reenvía a Next.js (:3000) y a NestJS (:3001). Internamente esos servicios siguen en HTTP, así que el arranque habitual no cambia.
+
+Para que Windows resuelva el nombre, agregue una línea al archivo `C:\Windows\System32\drivers\etc\hosts` **desde un PowerShell como Administrador**:
 
 ```powershell
 Add-Content C:\Windows\System32\drivers\etc\hosts "`n127.0.0.1  www.rutabol.test  api.rutabol.test"
 ```
 
 El DNS BIND de `dns/` ya publica la zona `rutabol.test` (registros A `www` y `api` → `127.0.0.1`), pero el navegador no la consulta a menos que se cambie el resolvedor del sistema. El archivo `hosts` es la forma más simple de probar sin modificar la configuración de red. Ver [`README-DNS.md`](README-DNS.md).
+
+El certificado de `certs/` fue creado con `mkcert` para `www.rutabol.test`, `api.rutabol.test`, `localhost` y `127.0.0.1`. Si necesita regenerarlo:
+
+```powershell
+mkcert -install
+mkcert -cert-file certs\rutabol.test.pem -key-file certs\rutabol.test-key.pem www.rutabol.test api.rutabol.test localhost 127.0.0.1 ::1
+docker compose restart caddy
+```
+
+La cookie `rutabol.sid` usa `secure: 'auto'`: se marca `Secure` cuando la petición entra por HTTPS (proxy) y permanece normal si se accede directamente por HTTP al puerto 3001. Así se pueden seguir corriendo las pruebas locales contra `http://localhost:3001/api`.
 
 ### 1. Base de datos
 
@@ -50,11 +63,11 @@ npm install
 npm run start:dev
 ```
 
-Escucha en `http://www.rutabol.test:3001/api`. El archivo `backend/.env` debe contener:
+Escucha internamente en `http://localhost:3001/api` y se publica como `https://www.rutabol.test/api`. El archivo `backend/.env` debe contener:
 
 ```dotenv
 PORT=3001
-FRONTEND_ORIGIN=http://www.rutabol.test:3000
+FRONTEND_ORIGIN=https://www.rutabol.test
 DATABASE_URL=postgresql://micros:<PASSWORD>@localhost:5433/micros_scz
 SESSION_SECRET=<secreto-de-al-menos-32-caracteres>
 ADMIN_USERNAME=admin
@@ -72,10 +85,10 @@ npm install
 npm run dev
 ```
 
-Visite **http://www.rutabol.test:3000**. La URL de la API se configura en `frontend/.env.local`:
+Visite **https://www.rutabol.test**. La URL de la API se configura en `frontend/.env.local`:
 
 ```dotenv
-NEXT_PUBLIC_API_URL=http://www.rutabol.test:3001/api
+NEXT_PUBLIC_API_URL=https://www.rutabol.test/api
 ```
 
 ## Usuarios de demostración

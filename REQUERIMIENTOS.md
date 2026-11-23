@@ -90,7 +90,7 @@ Usuarios de demostración creados al iniciar el backend: `admin`, `conductor1`, 
 | Código | Requerimiento | Cobertura |
 |---|---|---|
 | RNF-01 | Seguridad | bcrypt para contraseñas, sesiones en PostgreSQL, `RolesGuard` por endpoint, `ValidationPipe` con whitelist |
-| RNF-02 | Privacidad | Cookie `httpOnly`/`sameSite`, auditoría sin contraseñas/tokens/fotos, sin datos de tarjeta; limitación: fotos se guardan como data URL en BD local |
+| RNF-02 | Privacidad | Cookie `httpOnly`/`sameSite`/`secure` en HTTPS local (Caddy + mkcert), auditoría sin contraseñas/tokens/fotos, sin datos de tarjeta; limitación: fotos se guardan como data URL en BD local |
 | RNF-03 | Rendimiento (≤ 3 s) | Consultas parametrizadas e índices en `posiciones`, `abordajes`, `pagos`, `tarifas` y `viajes`; sin prueba de carga en esta fase |
 | RNF-04 | Disponibilidad | `restart: unless-stopped` en Compose y healthcheck de PostgreSQL |
 | RNF-05 | Precisión GPS | Validación de latitud/longitud; las posiciones son simuladas y la precisión real depende del dispositivo |

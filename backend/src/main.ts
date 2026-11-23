@@ -15,9 +15,12 @@ async function bootstrap() {
   const database = app.get(DatabaseService);
   await database.query('SELECT 1');
 
+  // Detrás de Caddy, Express debe confiar en X-Forwarded-Proto para marcar la cookie como Secure.
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   app.setGlobalPrefix('api');
   app.enableCors({
-    origin: process.env.FRONTEND_ORIGIN || 'http://localhost:3000',
+    origin: process.env.FRONTEND_ORIGIN || 'https://www.rutabol.test',
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   });
@@ -32,11 +35,12 @@ async function bootstrap() {
     pool: database.getPool(),
     createTableIfMissing: true
     }),
-    cookie: { httpOnly: true, sameSite: 'lax', secure: false, maxAge: 60 * 60 * 1000 },
+    // 'auto' => Secure cuando entra por HTTPS (Caddy) y normal cuando se accede por HTTP directo.
+    cookie: { httpOnly: true, sameSite: 'lax', secure: 'auto', maxAge: 60 * 60 * 1000 },
   }));
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   await app.listen(Number(process.env.PORT) || 3001);
-  console.log('API RUTABOL-SCZ disponible en http://www.rutabol.test:3001/api');
+  console.log('API RUTABOL-SCZ disponible en https://www.rutabol.test/api');
 }
 bootstrap().catch(err => { console.error(err); process.exit(1); });

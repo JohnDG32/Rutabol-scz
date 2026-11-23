@@ -170,11 +170,11 @@ DNS traduce un nombre, como `www.rutabol.test`, a una dirección IP. No instala 
 En este proyecto, los registros A apuntan a `127.0.0.1`, pero Next.js debe estar ejecutándose por separado. La aplicación quedó configurada para abrirse con el nombre DNS (DNS no almacena puertos, por eso se escribe el puerto en la URL):
 
 ```text
-http://www.rutabol.test:3000
-http://www.rutabol.test:3001/api
+https://www.rutabol.test
+https://www.rutabol.test/api
 ```
 
-`backend/.env` y `frontend/.env.local` usan ese nombre: `FRONTEND_ORIGIN=http://www.rutabol.test:3000` y `NEXT_PUBLIC_API_URL=http://www.rutabol.test:3001/api`. Como la web y la API comparten el mismo host (`www.rutabol.test`) y solo cambia el puerto, la cookie `rutabol.sid` sigue siendo válida sin configurar un dominio adicional.
+`backend/.env` y `frontend/.env.local` usan ese nombre: `FRONTEND_ORIGIN=https://www.rutabol.test` y `NEXT_PUBLIC_API_URL=https://www.rutabol.test/api`. Un proxy Caddy (servicio `caddy` del `compose.yaml`) termina TLS con un certificado `mkcert` y reenvía a los puertos internos 3000 y 3001. Como la web y la API comparten el mismo host, la cookie `rutabol.sid` sigue siendo válida sin configurar un dominio adicional; se marca `Secure` porque la petición entra por HTTPS.
 
 `nslookup www.rutabol.test 127.0.0.1` consulta BIND explícitamente solo para esa prueba. El navegador usa el DNS configurado en Windows, que no necesariamente es BIND. Para que resuelva el nombre se agregó una entrada en `C:\Windows\System32\drivers\etc\hosts` (ver `README.md`, paso 0). No se convirtió a BIND en el único DNS de Windows porque tiene `recursion no`: dejaría de resolverse dominios externos. BIND se conserva para practicar la zona con `dig`/`nslookup`, y el `hosts` resuelve el nombre ante el navegador.
 
