@@ -26,6 +26,7 @@ export interface Micro {
 export interface MicroCercano extends Micro {
   lat: number;
   lng: number;
+  origen: string;
   ultimaPosicion: string;
   distanciaKm: number;
 }

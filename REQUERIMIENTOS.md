@@ -13,7 +13,7 @@ El sistema cubre los 24 requerimientos funcionales y los 18 no funcionales del e
 - **Backend REST (NestJS):** 12 módulos (autenticación, líneas, micros, conductores, tarifas, estudiantes, pagos, viajes, notificaciones, reportes, auditoría y base de datos).
 - **Frontend web (Next.js):** catálogo público, consulta de tarifas, micros cercanos, panel del conductor, panel del pasajero/estudiante y panel administrativo.
 - **Persistencia (PostgreSQL):** esquema completo con claves foráneas, restricciones `CHECK`, índices y datos de demostración.
-- **Servicios simulados:** posiciones GPS, pasarela de pagos y fotografías de estudiantes (data URL). No se almacenan datos reales de tarjetas.
+- **Servicios simulados:** posiciones GPS de demostración, pasarela de pagos y fotografías de estudiantes (data URL). El conductor puede enviar su posición real desde el navegador y el sistema registra el origen de cada posición. No se almacenan datos reales de tarjetas.
 
 > Los nombres de líneas, placas, posiciones y usuarios son ficticios. No representan información oficial de transporte.
 
@@ -61,7 +61,7 @@ Usuarios de demostración creados al iniciar el backend: `admin`, `conductor1`, 
 | RF-03 | Registro de conductores y micro asignado | Entidad `conductores` con `usuario_id` y `micro_id` | `/api/conductores` |
 | RF-04 | Control de tarifas autorizadas | Tarifa por línea y categoría; el sistema calcula el monto del pago | `tarifas/`, `pagos.service.ts` |
 | RF-05 | Consulta de tarifas | Consulta pública filtrable | `GET /api/tarifas?lineaId=&categoria=`, `Consultas.tsx` |
-| RF-06 | Geolocalización en tiempo real | Historial de posiciones y última posición por micro | `POST /api/micros/:id/posicion` |
+| RF-06 | Geolocalización en tiempo real | Historial de posiciones y última posición por micro; origen `SIMULADO`, `MANUAL` o `GPS_NAVEGADOR` | `POST /api/micros/:id/posicion` |
 | RF-07 | Micros cercanos en 5 km | Distancia Haversine sobre la última posición | `GET /api/micros/cercanos?lat=&lng=&radio=5` |
 | RF-08 | Control de pasajeros | Abordajes y bajas por viaje | `POST /api/viajes/:id/abordar`, `/bajar` |
 | RF-09 | Capacidad 18–25 | `CHECK (capacidad BETWEEN 18 AND 25)`, DTO y formulario | `01_init.sql`, `create-micro.dto.ts` |
@@ -93,7 +93,7 @@ Usuarios de demostración creados al iniciar el backend: `admin`, `conductor1`, 
 | RNF-02 | Privacidad | Cookie `httpOnly`/`sameSite`/`secure` en HTTPS local (Caddy + mkcert), auditoría sin contraseñas/tokens/fotos, sin datos de tarjeta; limitación: fotos se guardan como data URL en BD local |
 | RNF-03 | Rendimiento (≤ 3 s) | Consultas parametrizadas e índices en `posiciones`, `abordajes`, `pagos`, `tarifas` y `viajes`; prueba de carga `tests/prueba-carga.ps1`: 400 peticiones (20 usuarios × 5 iteraciones × 4 endpoints), 0 errores, promedio 87 ms, p95 124 ms, máximo 1014 ms |
 | RNF-04 | Disponibilidad | `restart: unless-stopped` en Compose y healthcheck de PostgreSQL |
-| RNF-05 | Precisión GPS | Validación de latitud/longitud; las posiciones son simuladas y la precisión real depende del dispositivo |
+| RNF-05 | Precisión GPS | Validación de latitud/longitud; botón de GPS real del navegador (`navigator.geolocation`, HTTPS) con precisión en metros y respaldo manual; cada posición guarda su origen. La precisión final depende del dispositivo y las posiciones de demostración siguen siendo simuladas |
 | RNF-06 | Usabilidad | Interfaz en español con formularios, tablas, estados visuales y mensajes de error |
 | RNF-07 | Compatibilidad | Aplicación web responsive para navegadores modernos; Android/iOS se atienden vía navegador (no hay apps nativas) |
 | RNF-08 | Escalabilidad | Módulos NestJS independientes; nuevas líneas, micros y conductores se registran sin reiniciar |

@@ -54,8 +54,10 @@ export const api = {
   crearMicro: (data: MicroInput) => request<Micro>('/micros', json('POST', data)),
   actualizarMicro: (id: number, data: MicroInput) => request<Micro>(`/micros/${id}`, json('PATCH', data)),
   eliminarMicro: (id: number) => request<void>(`/micros/${id}`, { method: 'DELETE' }),
-  registrarPosicion: (microId: number, lat: number, lng: number) =>
-    request<{ id: number }>(`/micros/${microId}/posicion`, json('POST', { lat, lng })),
+  registrarPosicion: (microId: number, lat: number, lng: number, origen = 'MANUAL') =>
+    request<{ id: number; origen: string }>(
+      `/micros/${microId}/posicion`, json('POST', { lat, lng, origen })
+    ),
 
   // Conductores
   conductores: () => request<Conductor[]>('/conductores'),

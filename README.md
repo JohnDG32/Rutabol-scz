@@ -49,7 +49,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Si el volumen `postgres_data` ya existía con el esquema anterior de "Micros SCZ", aplique la migración idempotente una sola vez:
+Si el volumen `postgres_data` viene de una versión anterior del proyecto (incluida la que no tenía `posiciones.origen`), aplique la migración idempotente una sola vez:
 
 ```powershell
 docker compose exec -T postgres psql -U micros -d micros_scz -f /rutabol-migration.sql
@@ -129,7 +129,7 @@ database/         01_init.sql y 02_migracion_rutabol.sql
 ## Flujo básico de prueba
 
 1. Ingrese como **admin** y registre/ autorice un micro (capacidad entre 18 y 25).
-2. Como **conductor1**, inicie un viaje y envíe una posición GPS.
+2. Como **conductor1**, inicie un viaje y envíe una posición GPS. En "Actualizar GPS" puede presionar **Usar mi ubicación real** (navegador con HTTPS) o escribir latitud/longitud a mano.
 3. Como **pasajero1**, consulte el micro cercano, cree un pago y confírmelo.
 4. El conductor registra el abordaje con el ID del pago confirmado; al superar la capacidad se bloquea y se genera una alerta.
 5. El conductor realiza un trasbordo con el mismo `pago_id` o activa una emergencia; los pasajeros reciben notificaciones.
@@ -150,6 +150,16 @@ database/         01_init.sql y 02_migracion_rutabol.sql
 | POST | `/api/viajes`, `/api/viajes/:id/{abordar,bajar,finalizar,trasbordo,emergencia}` | CONDUCTOR, ADMIN |
 | GET | `/api/reportes/resumen?desde=&hasta=&lineaId=` | ADMIN |
 | GET | `/api/reportes/exportar?desde=&hasta=&lineaId=` | ADMIN (CSV) |
+
+## GPS real del navegador
+
+La geolocalización nativa (`navigator.geolocation`) solo funciona en un contexto seguro: abra siempre **https://www.rutabol.test** y acepte el permiso del navegador.
+
+- **Pasajero:** el botón *Buscar con mi ubicación* usa las coordenadas reales para la consulta de micros cercanos. Si el GPS falla o se deniega, se muestra el aviso y se usa la ubicación de demostración; también existe el botón *Usar ubicación de demostración*.
+- **Conductor:** en *Actualizar GPS*, el botón *Usar mi ubicación real* completa latitud/longitud y muestra la precisión aproximada en metros; luego presiona *Enviar posición*. Las coordenadas siguen siendo editables a mano.
+- Cada posición se guarda con `origen`: `SIMULADO` (valor por defecto de la API), `MANUAL` (coordenadas escritas en el panel) o `GPS_NAVEGADOR` (dispositivo real). La lista de micros cercanos muestra la etiqueta **GPS real** cuando corresponde.
+
+Las posiciones de demostración siguen siendo simuladas; este cambio agrega la opción de usar la ubicación real sin quitar el modo demo.
 
 Listado completo y trazabilidad RF/RNF/RN: [`REQUERIMIENTOS.md`](REQUERIMIENTOS.md).
 
@@ -189,15 +199,18 @@ powershell -ExecutionPolicy Bypass -File tests/verificar-flujo.ps1
 
 Ejecuta 45 comprobaciones sobre catálogo público, seguridad, roles, capacidad, GPS, tarifas, pagos, trasbordos, emergencias, notificaciones, historial y reportes (incluye filtros y exportación CSV). Limpia las tablas de operación al empezar y al terminar, elimina los micros temporales `QA*` y restaura el micro demo, así que puede ejecutarse varias veces seguidas. Imprime un resumen con PASS/FAIL y termina con código 1 si hay fallos.
 
-## Verificación de rendimiento y recuperación
+## Verificación de rendimiento, recuperación y GPS
 
 Con Docker y la API en ejecución:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tests/prueba-carga.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-restore.ps1
+powershell -ExecutionPolicy Bypass -File tests/verificar-gps-real.ps1
 ```
 
 `prueba-carga.ps1` lanza 20 usuarios concurrentes × 5 iteraciones × 4 endpoints públicos (400 peticiones) y exige 0 errores y p95 ≤ 3000 ms. Resultado obtenido: **0 errores, promedio 87 ms, p95 124 ms, máximo 1014 ms**. Acepta `-Usuarios`, `-Iteraciones` y `-BaseUrl` como parámetros.
 
 `verificar-restore.ps1` hace `pg_dump`, crea una base temporal vacía, restaura el volcado y compara el conteo de las 14 tablas; al final elimina la base temporal. Resultado obtenido: **conteos idénticos en las 14 tablas (PASS)**.
+
+`verificar-gps-real.ps1` envía una posición con `origen=GPS_NAVEGADOR`, comprueba que aparece etiquetada en `/micros/cercanos` y verifica que una petición sin `origen` siga defaultando a `SIMULADO`. Resultado obtenido: **3/3 PASS**.

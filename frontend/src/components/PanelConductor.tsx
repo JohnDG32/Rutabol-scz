@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api';
+import { obtenerUbicacion } from '@/lib/geolocalizacion';
 import type { Categoria, Micro, Viaje } from '@/lib/types';
 
 interface Props {
@@ -25,6 +26,9 @@ export function PanelConductor({ micros, viajes, recargar, avisar }: Props) {
   const [motivo, setMotivo] = useState('');
   const [lat, setLat] = useState(-17.7833);
   const [lng, setLng] = useState(-63.1821);
+  const [origen, setOrigen] = useState<'MANUAL' | 'GPS_NAVEGADOR'>('MANUAL');
+  const [precision, setPrecision] = useState<number | null>(null);
+  const [ubicando, setUbicando] = useState(false);
   const [procesando, setProcesando] = useState(false);
 
   const disponibles = micros.filter((m) => m.autorizado && !['FUERA_DE_SERVICIO', 'EMERGENCIA'].includes(m.estado));
@@ -46,6 +50,36 @@ export function PanelConductor({ micros, viajes, recargar, avisar }: Props) {
 
   function listaAbordajes(): number[] {
     return abordajeIds.split(',').map((valor) => Number(valor.trim())).filter((n) => Number.isInteger(n) && n > 0);
+  }
+
+  function cambiarLat(valor: string) {
+    setLat(Number(valor));
+    setOrigen('MANUAL');
+    setPrecision(null);
+  }
+
+  function cambiarLng(valor: string) {
+    setLng(Number(valor));
+    setOrigen('MANUAL');
+    setPrecision(null);
+  }
+
+  async function usarMiUbicacion() {
+    setUbicando(true);
+    try {
+      const ubicacion = await obtenerUbicacion();
+      setLat(Number(ubicacion.lat.toFixed(6)));
+      setLng(Number(ubicacion.lng.toFixed(6)));
+      setOrigen('GPS_NAVEGADOR');
+      setPrecision(ubicacion.precision);
+      avisar(ubicacion.precision !== null
+        ? `Ubicación real cargada (±${ubicacion.precision} m). Presione "Enviar posición".`
+        : 'Ubicación real cargada. Presione "Enviar posición".');
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'No se pudo obtener la ubicación');
+    } finally {
+      setUbicando(false);
+    }
   }
 
   return (
@@ -107,11 +141,20 @@ export function PanelConductor({ micros, viajes, recargar, avisar }: Props) {
           <button className="boton peligro" disabled={procesando || !idViaje}>Activar emergencia</button>
         </form>
 
-        <form className="tarjetaForm" onSubmit={(e) => { e.preventDefault(); void ejecutar(() => api.registrarPosicion(microId || disponibles[0]?.id || 0, lat, lng), 'Posición GPS registrada.'); }}>
+        <form className="tarjetaForm" onSubmit={(e) => { e.preventDefault(); void ejecutar(() => api.registrarPosicion(microId || disponibles[0]?.id || 0, lat, lng, origen), 'Posición GPS registrada.'); }}>
           <h3>Actualizar GPS</h3>
-          <label>Latitud<input type="number" step="any" required value={lat} onChange={(e) => setLat(Number(e.target.value))} /></label>
-          <label>Longitud<input type="number" step="any" required value={lng} onChange={(e) => setLng(Number(e.target.value))} /></label>
-          <button className="boton secundario" disabled={procesando}>Enviar posición</button>
+          <p className="muted">El GPS real requiere HTTPS y permiso del navegador. También puede escribir las coordenadas a mano.</p>
+          <button type="button" className="boton secundario" onClick={() => void usarMiUbicacion()} disabled={ubicando || procesando}>
+            {ubicando ? 'Obteniendo ubicación...' : 'Usar mi ubicación real'}
+          </button>
+          <label>Latitud<input type="number" step="any" required value={lat} onChange={(e) => cambiarLat(e.target.value)} /></label>
+          <label>Longitud<input type="number" step="any" required value={lng} onChange={(e) => cambiarLng(e.target.value)} /></label>
+          <p className="muted">
+            Origen: {origen === 'GPS_NAVEGADOR'
+              ? `GPS real del navegador${precision !== null ? ` (±${precision} m)` : ''}`
+              : 'coordenadas manuales'}
+          </p>
+          <button className="boton principal" disabled={procesando || ubicando}>Enviar posición</button>
         </form>
 
         <div className="tarjetaForm">

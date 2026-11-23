@@ -73,17 +73,17 @@ export class MicrosService {
     if (!rows[0]) throw new NotFoundException('El micro no existe');
   }
 
-  /** RF-06/RNF-16: guarda una posición GPS simulada y marca el micro en circulación. */
-  async registrarPosicion(id: number, lat: number, lng: number): Promise<Posicion> {
+  /** RF-06/RNF-16: guarda una posición (simulada, manual o GPS real) y marca el micro en circulación. */
+  async registrarPosicion(id: number, lat: number, lng: number, origen = 'SIMULADO'): Promise<Posicion> {
     await this.findOne(id);
     await this.db.query(
       `UPDATE micros SET estado = CASE WHEN estado = 'DISPONIBLE' THEN 'EN_CIRCULACION' ELSE estado END
        WHERE id = $1`, [id]
     );
     const rows = await this.db.query<Posicion>(
-      `INSERT INTO posiciones (micro_id, lat, lng) VALUES ($1, $2, $3)
-       RETURNING id, micro_id AS "microId", lat, lng, registrado_en AS "registradoEn"`,
-      [id, lat, lng]
+      `INSERT INTO posiciones (micro_id, lat, lng, origen) VALUES ($1, $2, $3, $4)
+       RETURNING id, micro_id AS "microId", lat, lng, origen, registrado_en AS "registradoEn"`,
+      [id, lat, lng, origen || 'SIMULADO']
     );
     return rows[0];
   }
@@ -92,12 +92,13 @@ export class MicrosService {
   async cercanos(lat: number, lng: number, radio = 5): Promise<MicroCercano[]> {
     const rows = await this.db.query<MicroCercano>(
       `WITH ultimas AS (
-         SELECT DISTINCT ON (p.micro_id) p.micro_id, p.lat, p.lng, p.registrado_en
+         SELECT DISTINCT ON (p.micro_id) p.micro_id, p.lat, p.lng, p.origen, p.registrado_en
          FROM posiciones p ORDER BY p.micro_id, p.registrado_en DESC
        )
        SELECT m.id, m.placa, m.interno, m.capacidad, m.estado, m.autorizado,
               m.linea_id AS "lineaId", 0 AS ocupacion,
-              u.lat, u.lng, u.registrado_en AS "ultimaPosicion",
+              u.lat, u.lng, COALESCE(u.origen, 'SIMULADO') AS origen,
+               u.registrado_en AS "ultimaPosicion",
               6371 * acos(LEAST(1, GREATEST(-1,
                 cos(radians($1)) * cos(radians(u.lat)) * cos(radians(u.lng) - radians($2))
                 + sin(radians($1)) * sin(radians(u.lat))))) AS "distanciaKm"

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
+import { obtenerUbicacion, ubicacionDemo, type OrigenUbicacion } from '@/lib/geolocalizacion';
 import type { Categoria, Linea, Micro, MicroCercano, Tarifa } from '@/lib/types';
 
 interface Props {
@@ -10,7 +11,6 @@ interface Props {
   avisar: (mensaje: string) => void;
 }
 
-const UBICACION_DEMO = { lat: -17.7833, lng: -63.1821 };
 const categorias: Categoria[] = ['GENERAL', 'ESCOLAR', 'UNIVERSITARIO'];
 
 export function Consultas({ lineas, micros, avisar }: Props) {
@@ -20,7 +20,9 @@ export function Consultas({ lineas, micros, avisar }: Props) {
   const [categoria, setCategoria] = useState<Categoria>('GENERAL');
   const [tarifas, setTarifas] = useState<Tarifa[]>([]);
   const [cercanos, setCercanos] = useState<MicroCercano[]>([]);
-  const [centro, setCentro] = useState(UBICACION_DEMO);
+  const [centro, setCentro] = useState<{ lat: number; lng: number }>(ubicacionDemo());
+  const [origenUbicacion, setOrigenUbicacion] = useState<OrigenUbicacion>('DEMO');
+  const [precision, setPrecision] = useState<number | null>(null);
   const [buscando, setBuscando] = useState(false);
 
   const microsFiltrados = useMemo(() => micros.filter((micro) => {
@@ -54,11 +56,13 @@ export function Consultas({ lineas, micros, avisar }: Props) {
     };
   }, [cercanos, centro]);
 
-  async function cargarCercanos(lat: number, lng: number) {
-    setCentro({ lat, lng });
+  async function cargarCercanos(ubicacion: { lat: number; lng: number; origen: OrigenUbicacion; precision: number | null }) {
+    setCentro({ lat: ubicacion.lat, lng: ubicacion.lng });
+    setOrigenUbicacion(ubicacion.origen);
+    setPrecision(ubicacion.precision);
     setBuscando(true);
     try {
-      const datos = await api.microsCercanos(lat, lng, 5);
+      const datos = await api.microsCercanos(ubicacion.lat, ubicacion.lng, 5);
       setCercanos(datos);
       avisar(datos.length ? `${datos.length} micros dentro de 5 km.` : 'No hay micros con posición reciente en 5 km.');
     } catch (e) {
@@ -68,17 +72,21 @@ export function Consultas({ lineas, micros, avisar }: Props) {
     }
   }
 
-  function usarGps() {
-    if (!navigator.geolocation) {
-      void cargarCercanos(UBICACION_DEMO.lat, UBICACION_DEMO.lng);
-      return;
-    }
+  async function usarGps() {
     setBuscando(true);
-    navigator.geolocation.getCurrentPosition(
-      (posicion) => { void cargarCercanos(posicion.coords.latitude, posicion.coords.longitude); },
-      () => { void cargarCercanos(UBICACION_DEMO.lat, UBICACION_DEMO.lng); },
-      { enableHighAccuracy: true, timeout: 6000 }
-    );
+    try {
+      await cargarCercanos(await obtenerUbicacion());
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'No se pudo obtener la ubicación');
+      avisar('Se usará la ubicación de demostración.');
+      await cargarCercanos(ubicacionDemo());
+    } finally {
+      setBuscando(false);
+    }
+  }
+
+  function usarDemo() {
+    void cargarCercanos(ubicacionDemo());
   }
 
   return (
@@ -148,11 +156,22 @@ export function Consultas({ lineas, micros, avisar }: Props) {
           <div>
             <span className="sobre">GEOLOCALIZACIÓN</span>
             <h2>Micros cercanos</h2>
-            <p>Radio de búsqueda: 5 kilómetros (RN-09). Ubicaciones simuladas con GPS de demostración.</p>
+            <p>
+              Radio de búsqueda: 5 kilómetros (RN-09).{' '}
+              {origenUbicacion === 'GPS_NAVEGADOR'
+                ? `Origen: GPS real del navegador${precision !== null ? ` (precisión ±${precision} m)` : ''}.`
+                : 'Origen: ubicación de demostración.'}{' '}
+              Las posiciones de los micros son simuladas, salvo las enviadas por un conductor con GPS real.
+            </p>
           </div>
-          <button className="boton principal" onClick={usarGps} disabled={buscando}>
-            {buscando ? 'Buscando...' : 'Buscar con mi ubicación'}
-          </button>
+          <div className="filtros compactas">
+            <button className="boton principal" onClick={() => void usarGps()} disabled={buscando}>
+              {buscando ? 'Buscando...' : 'Buscar con mi ubicación'}
+            </button>
+            <button className="boton secundario" onClick={usarDemo} disabled={buscando}>
+              Usar ubicación de demostración
+            </button>
+          </div>
         </div>
         {mapa && (
           <div className="mapaEsquematico">
@@ -174,7 +193,7 @@ export function Consultas({ lineas, micros, avisar }: Props) {
                 </g>
               ))}
             </svg>
-            <p className="muted">Mapa esquemático: muestra la posición relativa de cada micro respecto a su ubicación. No es un mapa callejero.</p>
+            <p className="muted">Mapa esquemático: muestra la posición relativa de cada micro respecto a su ubicación (real o de demostración). No es un mapa callejero.</p>
           </div>
         )}
         <div className="panelLista">
@@ -182,7 +201,7 @@ export function Consultas({ lineas, micros, avisar }: Props) {
             <div className="fila" key={micro.id}>
               <div><strong>{micro.interno}</strong> · {micro.placa}</div>
               <div className="muted">{lineas.find((l) => l.id === micro.lineaId)?.nombre}</div>
-              <div><span className="chip">{micro.distanciaKm.toFixed(2)} km</span></div>
+              <div><span className="chip">{micro.distanciaKm.toFixed(2)} km</span> <span className="chip">{micro.origen === 'GPS_NAVEGADOR' ? 'GPS real' : 'Simulado'}</span></div>
             </div>
           )) : <p className="muted">Aún no hay resultados. Use el botón para consultar posiciones registradas.</p>}
         </div>

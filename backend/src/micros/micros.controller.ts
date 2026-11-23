@@ -37,5 +37,5 @@ export class MicrosController {
   posicion(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: PosicionDto,
-  ): Promise<Posicion> { return this.service.registrarPosicion(id, dto.lat, dto.lng); }
+  ): Promise<Posicion> { return this.service.registrarPosicion(id, dto.lat, dto.lng, dto.origen); }
 }

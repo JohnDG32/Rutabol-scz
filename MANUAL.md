@@ -303,6 +303,17 @@ curl.exe --ssl-no-revoke -i -X POST https://www.rutabol.test/api/auth/login -H "
 
 Debe aparecer `Set-Cookie: rutabol.sid=...; HttpOnly; Secure; SameSite=Lax`.
 
+### 9.1 GPS real del navegador (opcional)
+
+El navegador solo permite usar el GPS en **HTTPS**, por eso hay que entrar por `https://www.rutabol.test` y aceptar el permiso cuando aparezca.
+
+- **Como pasajero:** en la sección *Micros cercanos*, presione **Buscar con mi ubicación**. La página usa sus coordenadas reales para calcular la distancia. Si el GPS falla o no da permiso, aparece un aviso y se usa la ubicación de demostración; también puede presionar **Usar ubicación de demostración**.
+- **Como conductor:** en el panel, dentro de *Actualizar GPS*, presione **Usar mi ubicación real**. Se completan latitud y longitud y se muestra la precisión aproximada en metros. Después presione **Enviar posición**. Si no quiere usar el GPS, puede escribir las coordenadas a mano como antes.
+
+Cada posición guardada lleva un origen: `SIMULADO` (por defecto), `MANUAL` (escrita a mano) o `GPS_NAVEGADOR` (del dispositivo). En *Micros cercanos* verá la etiqueta **GPS real** en las posiciones enviadas desde un dispositivo.
+
+> Las posiciones de los micros de demostración siguen siendo simuladas. Esta opción agrega el GPS real sin sacar el modo demo.
+
 ---
 
 ## 10. Prueba completa (45 comprobaciones)
@@ -328,11 +339,14 @@ Mientras Docker y la API sigan corriendo:
 ```powershell
 powershell -ExecutionPolicy Bypass -File tests\prueba-carga.ps1
 powershell -ExecutionPolicy Bypass -File tests\verificar-restore.ps1
+powershell -ExecutionPolicy Bypass -File tests\verificar-gps-real.ps1
 ```
 
 El primero simula 20 usuarios al mismo tiempo y mide cuánto tarda cada respuesta. Debe terminar con `PASS - p95 <= 3000 ms y sin errores`. En esta máquina dio 400 peticiones, 0 errores, promedio 87 ms y p95 124 ms.
 
 El segundo hace una copia de la base, la restaura en una base vacía temporal y compara las 14 tablas. Debe terminar con `PASS - el restore reprodujo los datos exactamente`. Después borra la base temporal sola.
+
+El tercero comprueba el GPS real a nivel API: envía una posición con origen `GPS_NAVEGADOR`, la busca en `micros/cercanos` y verifica que una posición sin origen siga siendo `SIMULADO`. Debe terminar con `TOTAL: 3  PASS: 3  FAIL: 0`.
 
 Si querés una carga más liviana: `powershell -ExecutionPolicy Bypass -File tests\prueba-carga.ps1 -Usuarios 5 -Iteraciones 2`.
 
