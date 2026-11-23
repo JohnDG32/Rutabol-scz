@@ -7,5 +7,6 @@ import { MicrosService } from './micros.service';
   imports: [LineasModule],
   controllers: [MicrosController],
   providers: [MicrosService],
+  exports: [MicrosService],
 })
 export class MicrosModule {}

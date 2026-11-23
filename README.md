@@ -1,90 +1,144 @@
-# Micros SCZ — Proyecto de referencia hasta Clase 7
+# RUTABOL-SCZ
 
-**Tecnología Web I · Ingeniería de Sistemas · Sexto semestre**
+**Tecnología Web I · Ingeniería de Sistemas · Actividad 01**
 
-Aplicación educativa para explorar un catálogo de líneas de micros de Santa Cruz de la Sierra y administrar unidades mediante CRUD. El catálogo contiene **datos ficticios de demostración**, no rutas oficiales ni información operativa verificada.
+Sistema web para mejorar el control, la seguridad, la organización y la transparencia del transporte público de micros en Santa Cruz de la Sierra. Implementa los 24 requerimientos funcionales y 18 no funcionales documentados en [`REQUERIMIENTOS.md`](REQUERIMIENTOS.md).
 
-## Alcance por clase
+> Proyecto académico con datos ficticios. GPS, pasarela de pagos y fotografías son simulados; no representan operación oficial.
 
-- Clases 1–2: arquitectura cliente-servidor y primera aplicación Next.js.
-- Clase 3: fundamentos de Docker/Apache (independientes del proyecto; no son requisito para ejecutar esta aplicación).
-- Clase 6: API REST NestJS con módulos, controladores y servicios.
-- Clase 7: integración Next.js ↔ NestJS con `fetch`, CORS, GET/POST/PATCH/DELETE, estados de carga y errores.
-- **No implementado aún (Clase 8):** PostgreSQL, sesiones, cookies, login, autorización, Docker Compose de base de datos.
+## Tecnologías
 
-## Requisitos
+- **Frontend:** Next.js 15 + React 19 + TypeScript.
+- **Backend:** NestJS 11 + TypeScript + `class-validator`, `bcryptjs`, `express-session` con `connect-pg-simple`.
+- **Base de datos:** PostgreSQL 17 en Docker Compose.
+- **Infraestructura local:** DNS BIND9 opcional (ver `README-DNS.md`).
 
-Node.js **22 LTS** o superior compatible con las dependencias. npm y Git.
+## Puesta en marcha
 
-## Instalación
+### 1. Base de datos
 
-Abrir dos terminales desde la raíz:
+Desde la raíz del repositorio:
 
-**Terminal 1 — API**
-```bash
+```powershell
+docker compose up -d
+docker compose ps
+```
+
+Si el volumen `postgres_data` ya existía con el esquema anterior de "Micros SCZ", aplique la migración idempotente una sola vez:
+
+```powershell
+docker compose exec -T postgres psql -U micros -d micros_scz -f /rutabol-migration.sql
+```
+
+En una instalación nueva, `01_init.sql` y `02_migracion_rutabol.sql` se ejecutan automáticamente al crear el volumen.
+
+### 2. API
+
+```powershell
 cd backend
 npm install
-cp .env.example .env
 npm run start:dev
 ```
 
-**Terminal 2 — Web**
-```bash
+Escucha en `http://localhost:3001/api`. El archivo `backend/.env` debe contener:
+
+```dotenv
+PORT=3001
+FRONTEND_ORIGIN=http://localhost:3000
+DATABASE_URL=postgresql://micros:<PASSWORD>@localhost:5433/micros_scz
+SESSION_SECRET=<secreto-de-al-menos-32-caracteres>
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=<clave-de-al-menos-12-caracteres>
+RUTABOL_DEMO_PASSWORD=RutabolDemo123
+```
+
+> La contraseña de PostgreSQL debe coincidir con `POSTGRES_PASSWORD` del `.env` de la raíz.
+
+### 3. Web
+
+```powershell
 cd frontend
 npm install
-cp .env.local.example .env.local
 npm run dev
 ```
 
-Visitar **http://localhost:3000**. La API escucha en **http://localhost:3001/api**.
+Visite **http://localhost:3000**. La URL de la API se configura en `frontend/.env.local`:
 
-> En Windows PowerShell: `Copy-Item .env.example .env` y `Copy-Item .env.local.example .env.local`.
+```dotenv
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+```
 
-## Arquitectura
+## Usuarios de demostración
+
+| Usuario | Rol | Contraseña |
+|---|---|---|
+| `admin` | ADMIN | la de `ADMIN_PASSWORD` |
+| `conductor1` | CONDUCTOR | `RUTABOL_DEMO_PASSWORD` |
+| `pasajero1` | PASAJERO | `RUTABOL_DEMO_PASSWORD` |
+| `estudiante1` | ESTUDIANTE | `RUTABOL_DEMO_PASSWORD` |
+
+Los usuarios de demostración se crean automáticamente al iniciar la API y se asocian a un conductor con micro asignado y a un estudiante universitario verificado.
+
+## Estructura
 
 ```text
-Navegador → Next.js (localhost:3000)
-             │ fetch HTTP/JSON
-             ▼
-          NestJS (localhost:3001/api)
-             ├─ LineasController → LineasService → arreglo en memoria
-             └─ MicrosController → MicrosService → arreglo en memoria
+backend/src/
+  auth/           login, sesión y roles
+  common/         RolesGuard, auditoría
+  lineas/         catálogo de líneas (CRUD ADMIN)
+  micros/         micros, disponibilidad y GPS
+  conductores/    conductores y micro asignado
+  tarifas/        tarifas autorizadas por línea y categoría
+  estudiantes/    RUDE, código universitario, foto y verificación
+  pagos/          pasarela simulada y confirmación
+  viajes/         abordajes, capacidad, trasbordos y emergencias
+  notificaciones/ avisos a pasajeros, conductores y administrador
+  reportes/       estadísticas
+frontend/src/
+  app/            página principal y estilos
+  components/     Acceso, Consultas, PanelConductor, PanelPasajero, PanelAdmin
+  lib/            api.ts (cliente HTTP) y types.ts
+database/         01_init.sql y 02_migracion_rutabol.sql
 ```
 
-La API devuelve **líneas de demostración** y un listado inicial de micros. Los registros nuevos se pierden cuando se reinicia el proceso NestJS: es intencional para comparar con la persistencia de Clase 8.
+## Flujo básico de prueba
 
-## Endpoints
+1. Ingrese como **admin** y registre/ autorice un micro (capacidad entre 18 y 25).
+2. Como **conductor1**, inicie un viaje y envíe una posición GPS.
+3. Como **pasajero1**, consulte el micro cercano, cree un pago y confírmelo.
+4. El conductor registra el abordaje con el ID del pago confirmado; al superar la capacidad se bloquea y se genera una alerta.
+5. El conductor realiza un trasbordo con el mismo `pago_id` o activa una emergencia; los pasajeros reciben notificaciones.
+6. El admin revisa el historial, las tarifas y el reporte estadístico.
 
-| Método | Ruta | Descripción |
+## Endpoints principales
+
+| Método | Ruta | Acceso |
 |---|---|---|
-| GET | `/api/lineas` | Catálogo público de líneas |
-| GET | `/api/lineas/:id` | Detalle de línea |
-| GET | `/api/micros` | Lista de micros |
-| GET | `/api/micros/:id` | Detalle de micro |
-| POST | `/api/micros` | Crear micro |
-| PATCH | `/api/micros/:id` | Editar micro |
-| DELETE | `/api/micros/:id` | Eliminar micro |
+| GET | `/api/lineas`, `/api/micros`, `/api/tarifas` | Público |
+| GET | `/api/micros/cercanos?lat=&lng=&radio=5` | Público |
+| POST | `/api/auth/login`, `/api/auth/logout` | Público |
+| GET | `/api/auth/me` | Sesión iniciada |
+| POST/PATCH/DELETE | `/api/lineas`, `/api/micros`, `/api/conductores`, `/api/tarifas`, `/api/estudiantes` | ADMIN |
+| POST | `/api/micros/:id/posicion` | CONDUCTOR, ADMIN |
+| POST | `/api/pagos`, `/api/pagos/:id/confirmar` | Sesión iniciada |
+| GET | `/api/viajes/historial`, `/api/pagos/mios`, `/api/notificaciones` | Sesión iniciada |
+| POST | `/api/viajes`, `/api/viajes/:id/{abordar,bajar,finalizar,trasbordo,emergencia}` | CONDUCTOR, ADMIN |
+| GET | `/api/reportes/resumen` | ADMIN |
 
-Ejemplo POST:
-```bash
-curl -i -X POST http://localhost:3001/api/micros \
-  -H 'Content-Type: application/json' \
-  -d '{"placa":"SCZ-2048","interno":"M-08","capacidad":35,"estado":"ACTIVO","lineaId":1}'
+Listado completo y trazabilidad RF/RNF/RN: [`REQUERIMIENTOS.md`](REQUERIMIENTOS.md).
+
+## Copias de seguridad
+
+```powershell
+docker compose exec -T postgres pg_dump -U micros -d micros_scz > backup_rutabol.sql
+docker compose exec -T postgres psql -U micros -d micros_scz < backup_rutabol.sql
 ```
 
-Ejemplo PATCH:
-```bash
-curl -i -X PATCH http://localhost:3001/api/micros/1 \
-  -H 'Content-Type: application/json' \
-  -d '{"estado":"MANTENIMIENTO"}'
+## Verificación de compilación
+
+```powershell
+cd backend; npm run build
+cd ../frontend; npm run build
 ```
 
-Ejemplo DELETE:
-```bash
-curl -i -X DELETE http://localhost:3001/api/micros/1
-```
-
-Respuestas típicas: `200` lectura/edición, `201` creación, `204` eliminación, `400` validación, `404` inexistente, `409` placa o interno duplicado.
-
-
-
+Ambos comandos pasan en la versión entregada. La prueba de ejecución con PostgreSQL requiere Docker Desktop en funcionamiento.

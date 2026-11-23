@@ -24,7 +24,7 @@ async function bootstrap() {
 
   const PgStore = connectPgSimple(session);
   app.use(session({
-    name: 'micros.sid',
+    name: 'rutabol.sid',
     secret,
     resave: false,
     saveUninitialized: false,
@@ -37,6 +37,6 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   await app.listen(Number(process.env.PORT) || 3001);
-  console.log('API Micros SCZ disponible en http://localhost:3001/api');
+  console.log('API RUTABOL-SCZ disponible en http://localhost:3001/api');
 }
 bootstrap().catch(err => { console.error(err); process.exit(1); });
