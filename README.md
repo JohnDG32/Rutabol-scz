@@ -217,6 +217,17 @@ Verificación del cableado (usa una clave `sk_test_` inválida en una API aislad
 powershell -ExecutionPolicy Bypass -File tests/verificar-stripe.ps1
 ```
 
+### Estado para producción de Stripe (pendiente de credenciales)
+
+El proyecto se entrega con `PAGOS_MODO=SIMULADO`. No se incluyen claves reales ni datos de tarjeta. Para pasar a Stripe en una instalación real hace falta una clave de prueba propia (`sk_test_...`) o, en su momento, una clave de producción; en ambos casos se carga en `backend\.env`, nunca en el repositorio.
+
+El **webhook es opcional** y hoy está sin configurar por diseño: la confirmación del pago ocurre al volver de Checkout con `session_id`, así que el flujo completo funciona sin él. `www.rutabol.test` usa un certificado mkcert local, al que Stripe no puede llamar. Para activar el webhook hacen falta dos cosas:
+
+1. Un túnel público hacia la API, por ejemplo `stripe listen --forward-to localhost:3001/api/pagos/webhook` (o un dominio HTTPS público con Caddy).
+2. El secreto del webhook (`whsec_...`) en `STRIPE_WEBHOOK_SECRET`.
+
+Sin esos dos pasos, `POST /api/pagos/webhook` existe pero no recibe eventos; no es un fallo, es una decisión de diseño para la demo.
+
 ## Extra: notificaciones externas (push y correo)
 
 Los avisos internos del panel siguen funcionando igual sin configuración. Este extra permite además enviarlos al navegador (Web Push) y por correo, de forma **opcional** y sin credenciales reales.
@@ -248,6 +259,21 @@ Verificación (usa claves VAPID de prueba en una API aislada, sin tocar la insta
 ```powershell
 powershell -ExecutionPolicy Bypass -File tests/verificar-notificaciones.ps1
 ```
+
+### Estado para producción de notificaciones (pendiente de credenciales)
+
+La configuración entregada es deliberadamente no invasiva:
+
+| Canal | Estado por defecto | Qué falta para usarlo de verdad |
+|---|---|---|
+| Avisos internos en el panel | Activo | Nada; es la base de la Actividad 01. |
+| Correo `ARCHIVO` | Disponible si se elige | Nada; escribe `.eml` en `backend/uploads/correos/`. |
+| Correo `SMTP` | `DESACTIVADO` | Host, puerto, usuario y contraseña de un servidor SMTP real, además del destinatario. |
+| Web Push | `DESACTIVADO` | Par de claves VAPID propio (`npx web-push generate-vapid-keys`) y un dominio HTTPS público. |
+
+Sin claves VAPID, `/api/notificaciones/config` responde `{ "push": false, "correo": "DESACTIVADO" }` y el panel no ofrece botones de push. Con `NOTIFICACIONES_EMAIL_MODO=DESACTIVADO` (valor por defecto) no se escribe ningún `.eml`. Las claves VAPID de prueba que usa `verificar-notificaciones.ps1` son efímeras, están solo en esa prueba y no se guardan en `.env`.
+
+Para producción: generar las claves VAPID propias, cargarlas en `backend\.env` junto con `VAPID_SUBJECT=mailto:...`, elegir `ARCHIVO` o `SMTP`, reiniciar la API y verificar con `/api/notificaciones/config`. Ninguna credencial real está versionada: `backend\.env` y `certs/` están ignorados por Git.
 
 ## Copias de seguridad
 

@@ -425,6 +425,45 @@ powershell -ExecutionPolicy Bypass -File tests\verificar-notificaciones.ps1
 
 Arranca una API temporal en el puerto 3012 con claves VAPID de prueba y correo en modo ARCHIVO, y comprueba suscripción, aviso de prueba y archivo `.eml`, sin tocar la API principal. Debe terminar con `TOTAL: 10  PASS: 10  FAIL: 0`.
 
+### 9.7 Lo que queda pendiente para producción
+
+Esto **no es necesario para la demostración ni para la entrega**. Queda documentado para que sepas qué tendrías que conseguir si algún día querés usar estos extras fuera de la PCs local.
+
+**1) Webhook de Stripe (opcional)**
+
+Hoy no está configurado y el pago se confirma solo cuando Stripe te devuelve al navegador con el `session_id`. Para activarlo necesitás dos cosas que no tenemos en la demo:
+
+- Un túnel público que apunte a la API, por ejemplo abrir una terminal y ejecutar `stripe listen --forward-to localhost:3001/api/pagos/webhook` con el CLI de Stripe instalado. `www.rutabol.test` funciona con un certificado local, así que Stripe desde internet no puede llamarlo directamente.
+- Copiar el secreto que muestra el comando (`whsec_...`) en `backend\.env` como `STRIPE_WEBHOOK_SECRET=whsec_...` y reiniciar la API.
+
+Sin eso, no pasa nada: el botón **Pagar con Stripe** y la confirmación por retorno siguen funcionando igual.
+
+**2) Correo SMTP real (opcional)**
+
+El modo por defecto es `NOTIFICACIONES_EMAIL_MODO=DESACTIVADO`: no se envía ni se escribe nada. Para ver correos sin credenciales usá el modo `ARCHIVO` del paso 9.6. Para enviar correos de verdad necesitás los datos de un servidor SMTP (por ejemplo el de tu cuenta de Gmail, con una contraseña de aplicación, no la contraseña normal):
+
+```dotenv
+NOTIFICACIONES_EMAIL_MODO=SMTP
+NOTIFICACIONES_EMAIL_DESTINO=demo@rutabol.test
+SMTP_HOST=smtp.ejemplo.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=tu_usuario
+SMTP_PASSWORD=tu_contraseña_de_aplicación
+```
+
+Guardás, reiniciás la API y probás con **Enviar aviso de prueba**. Nosotros **no vamos a pedir ni guardar** esas credenciales en la entrega.
+
+**3) Web Push real (opcional)**
+
+El botón **Activar push** solo aparece cuando hay claves VAPID en `backend\.env`. En la entrega no hay ninguna: `/api/notificaciones/config` responde `"push": false` y el panel se ve igual que en la Actividad 01. Para activarlo necesitás:
+
+1. Generar tu propio par con `npx web-push generate-vapid-keys` dentro de `backend`.
+2. Copiar `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` y `VAPID_SUBJECT=mailto:tu_correo` en `backend\.env`.
+3. Reiniciar la API y publicar la web en un dominio HTTPS público (el push no funciona con `localhost` ni con un certificado local).
+
+Las claves que usa `verificar-notificaciones.ps1` son de prueba, viven solo dentro de esa prueba y no quedan guardadas. `backend\.env` y `certs/` están ignorados por Git: nunca subas credenciales reales al repositorio.
+
 ---
 
 ## 10. Prueba completa (45 comprobaciones)
