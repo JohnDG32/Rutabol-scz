@@ -119,11 +119,12 @@ backend/src/
   viajes/         abordajes, capacidad, trasbordos y emergencias
   notificaciones/ avisos a pasajeros, conductores y administrador
   reportes/       estadísticas
+  usuarios/       CRUD de usuarios, roles y estado (ADMIN)
 frontend/src/
-  app/            página principal y estilos
+  app/            página principal, /dashboard y estilos
   components/     Acceso, Consultas, PanelConductor, PanelPasajero, PanelAdmin
   lib/            api.ts (cliente HTTP) y types.ts
-database/         01_init.sql y 02_migracion_rutabol.sql
+database/         01_init.sql y migraciones 02 a 05
 ```
 
 ## Flujo básico de prueba
@@ -143,6 +144,7 @@ database/         01_init.sql y 02_migracion_rutabol.sql
 | GET | `/api/micros/cercanos?lat=&lng=&radio=5` | Público |
 | POST | `/api/auth/login`, `/api/auth/logout` | Público |
 | GET | `/api/auth/me` | Sesión iniciada |
+| GET/POST/PATCH/DELETE | `/api/usuarios` y `/api/usuarios/:id` | ADMIN |
 | POST/PATCH/DELETE | `/api/lineas`, `/api/micros`, `/api/conductores`, `/api/tarifas`, `/api/estudiantes` | ADMIN |
 | POST | `/api/micros/:id/posicion` | CONDUCTOR, ADMIN |
 | POST | `/api/pagos`, `/api/pagos/:id/confirmar` | Sesión iniciada |
@@ -275,6 +277,31 @@ Sin claves VAPID, `/api/notificaciones/config` responde `{ "push": false, "corre
 
 Para producción: generar las claves VAPID propias, cargarlas en `backend\.env` junto con `VAPID_SUBJECT=mailto:...`, elegir `ARCHIVO` o `SMTP`, reiniciar la API y verificar con `/api/notificaciones/config`. Ninguna credencial real está versionada: `backend\.env` y `certs/` están ignorados por Git.
 
+## Dashboard con login y gestión de usuarios
+
+La ruta **`/dashboard`** muestra un panel posterior al login con tarjetas distintas para `ADMIN`, `CONDUCTOR`, `PASAJERO` y `ESTUDIANTE`. Cada tarjeta enlaza al panel que corresponde dentro de la página principal. Después del login aparece un botón **Ir al dashboard** en el panel de acceso. Si no hay sesión, el dashboard invita a iniciar sesión. La separación la hace el servidor, no el frontend: `RolesGuard` consulta `rol` y `activo` en PostgreSQL en cada petición protegida.
+
+- `GET /api/usuarios` devuelve `{ id, username, rol, activo }` para ADMIN. **Nunca** devuelve `password_hash`.
+- `POST /api/usuarios` crea un usuario con `username`, `password` (mínimo 12 caracteres), `rol` y `activo` opcional. La clave se hashea con bcrypt (12 rondas) mediante `bcryptjs`.
+- `PATCH /api/usuarios/:id` edita usuario, rol, estado y, opcionalmente, la clave. Un campo `password` vacío se omite y conserva la clave anterior.
+- `DELETE /api/usuarios/:id` hace **baja lógica** (`activo = false`); no borra la fila para preservar las relaciones históricas.
+- Reglas de seguridad: un administrador no puede desactivarse ni cambiar su propio rol desde el CRUD, y no se puede dejar la instalación sin un administrador activo.
+- Un usuario inactivo no puede iniciar sesión y pierde de inmediato el acceso a los endpoints protegidos aunque su cookie siga viva. Los cambios de rol también surten efecto sin esperar a que expire la sesión.
+
+Para instalaciones con volumen de PostgreSQL ya creado, aplicar la migración:
+
+```powershell
+docker compose exec -T postgres psql -U micros -d micros_scz -v ON_ERROR_STOP=1 -f /usuarios-migration.sql
+```
+
+El archivo `database/05_migracion_usuarios.sql` agrega `usuarios.activo BOOLEAN NOT NULL DEFAULT TRUE`. En instalaciones nuevas `01_init.sql` ya lo incluye. No se creó una tabla nueva: `verificar-restore.ps1` sigue comparando las mismas 14 tablas.
+
+Verificación aislada (14 comprobaciones, puerto 3013, limpia al terminar):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests/verificar-usuarios.ps1
+```
+
 ## Copias de seguridad
 
 ```powershell
@@ -323,6 +350,7 @@ powershell -ExecutionPolicy Bypass -File tests/verificar-websocket.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-fotos.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-stripe.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-notificaciones.ps1
+powershell -ExecutionPolicy Bypass -File tests/verificar-usuarios.ps1
 ```
 
 `prueba-carga.ps1` lanza 20 usuarios concurrentes × 5 iteraciones × 4 endpoints públicos (400 peticiones) y exige 0 errores y p95 ≤ 3000 ms. Resultado obtenido: **0 errores, promedio 87 ms, p95 124 ms, máximo 1014 ms**. Acepta `-Usuarios`, `-Iteraciones` y `-BaseUrl` como parámetros.
@@ -332,3 +360,5 @@ powershell -ExecutionPolicy Bypass -File tests/verificar-notificaciones.ps1
 `verificar-gps-real.ps1` envía una posición con `origen=GPS_NAVEGADOR`, comprueba que aparece etiquetada en `/micros/cercanos` y verifica que una petición sin `origen` siga defaultando a `SIMULADO`. Resultado obtenido: **3/3 PASS**.
 
 `verificar-websocket.ps1` conecta un cliente Socket.IO por `https://www.rutabol.test`, hace login, envía una posición y comprueba que el evento `cambios` llega al navegador. Usa `--use-system-ca` para validar el certificado mkcert instalado. Resultado obtenido: **4/4 PASS** (`transport=websocket`).
+
+`verificar-usuarios.ps1` levanta una API aislada en el puerto 3013 y comprueba la migración, el acceso por rol, el alta sin exposición del hash, el cambio de rol/estado, el bloqueo de login y de sesiones vivas, el cambio de clave, la protección del propio administrador y la baja lógica. Borra el usuario temporal al terminar. Resultado obtenido: **14/14 PASS**.

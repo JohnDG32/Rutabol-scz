@@ -244,6 +244,10 @@ button {
   min-height: 55px;
 }
 
+.tarjeta .boton {
+  margin-top: 14px;
+}
+
 .chip {
   font-size: 12px;
   background: #f0f5f7;
@@ -475,7 +479,7 @@ footer {
 .panelAcceso { background:white; padding:24px; border:1px solid #e1e8ec; border-radius:15px; display:flex; flex-direction:column; gap:12px; }
 .panelAcceso label {font-size:13px; font-weight:700;}
 .panelAcceso input { padding:12px; border:1px solid #d5e0e6; border-radius:9px; font:inherit; }
-.panelAcceso button {align-self:flex-start;}
+.panelAcceso button, .panelAcceso a.boton {align-self:flex-start;}
 .mensajeError {color:#991b1b;}
 .nota {font-size:13px; background:#f0f6f8; padding:12px; border-radius:9px;}
 .nota code, .seccion code {background:#e7f0f3; padding:2px 5px; border-radius:5px; font-size:12px;}

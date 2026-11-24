@@ -464,6 +464,72 @@ El botón **Activar push** solo aparece cuando hay claves VAPID en `backend\.env
 
 Las claves que usa `verificar-notificaciones.ps1` son de prueba, viven solo dentro de esa prueba y no quedan guardadas. `backend\.env` y `certs/` están ignorados por Git: nunca subas credenciales reales al repositorio.
 
+### 9.8 Dashboard con login y usuarios por rol
+
+Esta parte agrega una pantalla posterior al ingreso y la gestión de usuarios. No cambia los RF/RNF de la Actividad 01: los cuatro usuarios de demostración siguen existiendo y las 45 comprobaciones siguen pasando.
+
+**Paso 1: preparar la base (solo una vez).**
+
+Si tu base de PostgreSQL ya existía antes de este cambio, ejecutá desde la raíz del proyecto:
+
+```powershell
+docker compose exec -T postgres psql -U micros -d micros_scz -v ON_ERROR_STOP=1 -f /usuarios-migration.sql
+```
+
+Debe responder `ALTER TABLE`. En una instalación nueva no hace falta: `01_init.sql` ya crea la columna `activo`. Para comprobarlo:
+
+```powershell
+docker compose exec -T postgres psql -U micros -d micros_scz -tAc "SELECT column_name FROM information_schema.columns WHERE table_name='usuarios' AND column_name='activo';"
+```
+
+Debe devolver `activo`.
+
+**Paso 2: recompilar y reiniciar.**
+
+```powershell
+cd backend; npm run build; cd ..
+cd frontend; npm run build; cd ..
+```
+
+Si tenés la API abierta, detenela con `Ctrl + C` y volvé a iniciarla con `npm run start:dev` dentro de `backend`. Si tenés `npm run dev` en el frontend, detenelo primero para que el build no se pelee con la carpeta `.next`.
+
+**Paso 3: entrar al dashboard.**
+
+1. Abrí `https://www.rutabol.test`.
+2. Ingresá como `admin`, `conductor1`, `pasajero1` o `estudiante1` con las claves de la tabla de usuarios de demostración.
+3. Después de ingresar aparece un botón **Ir al dashboard** en el panel de acceso; también hay un enlace **Dashboard** en la barra superior. Presioná cualquiera de los dos (o escribí `https://www.rutabol.test/dashboard`).
+4. Vas a ver tu nombre, un chip con tu rol y cuatro tarjetas. Cada tarjeta lleva al panel que te corresponde:
+   - **ADMIN:** usuarios y roles, panel administrativo, reportes y seguimiento de micros.
+   - **CONDUCTOR:** iniciar viaje, posición GPS, trasbordos/emergencias y consultas.
+   - **PASAJERO:** mi viaje, pagar pasaje, notificaciones y micros cercanos.
+   - **ESTUDIANTE:** mi viaje con tarifa diferenciada, notificaciones y consultas.
+5. Si no hay sesión, el dashboard muestra un botón **Ir a iniciar sesión** en lugar de las tarjetas.
+6. **Cerrar sesión** borra la cookie `rutabol.sid` y vuelve al inicio.
+
+**Paso 4: crear o editar usuarios (solo ADMIN).**
+
+1. Entrá como `admin` y andá a **Administración**.
+2. Presioná la pestaña **usuarios**.
+3. Para dar de alta: completá *Usuario* (letras, números, punto, guion o guion bajo), *Contraseña* (mínimo 12 caracteres), elegí el *Rol* y dejá marcado *Activo*. Presioná **Guardar usuario**.
+4. El usuario aparece en la tabla con su rol y su estado. La contraseña **nunca se muestra**: se guarda con bcrypt de 12 rondas.
+5. Para editar, presioná **Editar** en su fila. Cambiás el usuario, el rol o el estado. Si dejás la contraseña vacía, se conserva la anterior; si escribís una nueva (mínimo 12 caracteres), la reemplaza. Presioná **Guardar usuario**.
+6. Para dar de baja, presioná **Desactivar**. El registro se conserva, pero pasa a *Inactivo* y el usuario ya no puede entrar. Para reactivarlo, usá **Editar** y marcá *Activo* otra vez.
+
+**Reglas que protege el sistema:**
+
+- No podés desactivar tu propio usuario ni cambiar tu propio rol desde este panel.
+- No podés dejar la instalación sin ningún administrador activo.
+- Un usuario desactivado no puede iniciar sesión. Si ya tenía la web abierta, pierde el acceso en el próximo clic porque el backend vuelve a consultar su rol y estado en PostgreSQL.
+- Un cambio de rol también se aplica de inmediato, sin esperar a que venza la cookie de una hora.
+
+**Paso 5: comprobarlo sin tocar tus usuarios.**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\verificar-usuarios.ps1
+```
+
+Arranca una API temporal en el puerto 3013, crea un usuario `qa_usuario_...`, prueba alta, login, cambio de rol/estado, bloqueo de sesión, cambio de clave y baja lógica. Al terminar borra ese usuario temporal y detiene la API. Debe terminar con `TOTAL: 14  PASS: 14  FAIL: 0`.
+
 ---
 
 ## 10. Prueba completa (45 comprobaciones)

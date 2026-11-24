@@ -10,8 +10,8 @@
 
 El sistema cubre los 24 requerimientos funcionales y los 18 no funcionales del enunciado en una primera fase ejecutable:
 
-- **Backend REST (NestJS):** 12 módulos (autenticación, líneas, micros, conductores, tarifas, estudiantes, pagos, viajes, notificaciones, reportes, auditoría y base de datos).
-- **Frontend web (Next.js):** catálogo público, consulta de tarifas, micros cercanos, panel del conductor, panel del pasajero/estudiante y panel administrativo.
+- **Backend REST (NestJS):** 13 módulos (autenticación, líneas, micros, conductores, tarifas, estudiantes, pagos, viajes, notificaciones, reportes, usuarios, auditoría y base de datos).
+- **Frontend web (Next.js):** catálogo público, consulta de tarifas, micros cercanos, panel del conductor, panel del pasajero/estudiante, panel administrativo y dashboard posterior al login.
 - **Persistencia (PostgreSQL):** esquema completo con claves foráneas, restricciones `CHECK`, índices y datos de demostración.
 - **Servicios simulados:** posiciones GPS de demostración, pasarela de pagos y fotografías de estudiantes (archivos en disco). El conductor puede enviar su posición real desde el navegador y el sistema registra el origen de cada posición. No se almacenan datos reales de tarjetas. Como extra opcional, la pasarela puede cambiarse a Stripe en modo de prueba sin modificar el flujo simulado por defecto.
 
@@ -28,7 +28,7 @@ Navegador (Next.js :3000)
 API NestJS (:3001/api)
    │ RolesGuard global + AuditoriaInterceptor global
    ├─ auth, lineas, micros, conductores, tarifas
-   ├─ estudiantes, pagos, viajes, notificaciones, reportes
+   ├─ estudiantes, pagos, viajes, notificaciones, reportes, usuarios
    ▼
 PostgreSQL (:5433) — volumen postgres_data
    ├─ lineas, micros, usuarios, conductores, tarifas, estudiantes
@@ -42,7 +42,7 @@ PostgreSQL (:5433) — volumen postgres_data
 
 | Actor | Rol en `usuarios` | Permisos principales |
 |---|---|---|
-| Administrador | `ADMIN` | CRUD de líneas, micros, conductores, tarifas y estudiantes; reportes; notificaciones; verificación de estudiantes |
+| Administrador | `ADMIN` | CRUD de líneas, micros, conductores, tarifas, estudiantes y usuarios; reportes; notificaciones; verificación de estudiantes |
 | Conductor | `CONDUCTOR` | Iniciar/finalizar viaje, abordajes, bajas, trasbordos, emergencias, enviar GPS, validar estudiantes |
 | Pasajero | `PASAJERO` | Consultar tarifas y micros, crear/confirmar pagos, historial, notificaciones |
 | Estudiante | `ESTUDIANTE` | Lo anterior + tarifas diferenciadas previa verificación |
@@ -143,6 +143,7 @@ Usuarios de demostración creados al iniciar el backend: `admin`, `conductor1`, 
 | GET / POST / PATCH / DELETE | `/api/estudiantes` | ADMIN |
 | POST | `/api/estudiantes/validar` | CONDUCTOR, ADMIN |
 | GET | `/api/estudiantes/yo` | ESTUDIANTE |
+| GET / POST / PATCH / DELETE | `/api/usuarios`, `/api/usuarios/:id` | ADMIN |
 | POST | `/api/pagos`, `/api/pagos/:id/confirmar` | Todos los roles autenticados |
 | GET | `/api/pagos/mios`, `/api/viajes/historial`, `/api/notificaciones` | Todos los roles autenticados |
 | GET | `/api/viajes/activos` | ADMIN, CONDUCTOR |
@@ -172,6 +173,7 @@ Entorno: Docker Desktop con PostgreSQL, Caddy + mkcert, API en `:3001` y web en 
 | Fotografías fuera de la BD | `tests/verificar-fotos.ps1` | **5/5 PASS** (URL de archivo, archivo en disco, HTTPS, validación por bytes, 0 data URLs) |
 | Pasarela Stripe (extra) | `tests/verificar-stripe.ps1` | **10/10 PASS** (modo simulado intacto, esquema, API aislada, checkout con clave inválida, pago pendiente) |
 | Notificaciones externas (extra) | `tests/verificar-notificaciones.ps1` | **10/10 PASS** (config por defecto intacta, esquema, API aislada, suscripción, aviso de prueba y correo `.eml`) |
+| Dashboard y usuarios por rol (extra) | `tests/verificar-usuarios.ps1` | **14/14 PASS** (migración, roles, alta sin hash, baja lógica, sesiones vivas y clave hasheada) |
 | Carga | `tests/prueba-carga.ps1` | 400 peticiones, **0 errores**, promedio 87 ms, p95 124 ms |
 | Copia de seguridad | `tests/verificar-restore.ps1` | `pg_dump` + restore en base vacía: **14/14 tablas con conteos idénticos** |
 | HTTPS y sesión | `curl.exe --ssl-no-revoke -i https://www.rutabol.test/api/auth/login` | Web 200, `Set-Cookie: rutabol.sid=...; HttpOnly; Secure; SameSite=Lax` |
@@ -194,3 +196,5 @@ Estas mejoras **no son requerimientos de la Actividad 01**; se agregaron para ac
 - **Fotografías de estudiantes en disco**, con migración automática de data URLs, validación por bytes y miniaturas en el panel administrativo. PostgreSQL solo conserva la URL del archivo.
 - **Pasarela Stripe en modo de prueba**, activable con `PAGOS_MODO=STRIPE` y una clave `sk_test_`. El modo simulado sigue siendo el predeterminado; Checkout usa una URL alojada, la confirmación consulta la sesión real y el webhook firmado es opcional. No se guardan datos de tarjeta.
 - **Notificaciones externas opcionales**: Web Push al navegador con claves VAPID y correo en modo `ARCHIVO` (archivos `.eml` en disco) o `SMTP`. Sin configuración, las notificaciones internas de los RF siguen funcionando exactamente igual; el envío externo es best-effort y nunca bloquea la operación principal.
+- **Dashboard posterior al login**: ruta `/dashboard` con tarjetas específicas por rol y enlaces a los paneles correspondientes. La separación se valida en el servidor: `RolesGuard` consulta `rol` y `activo` en PostgreSQL en cada petición protegida, así que un cambio de rol o una baja surte efecto sin esperar a que venza la cookie.
+- **CRUD de usuarios desde Administración**: alta, edición, cambio de rol y baja lógica con contraseñas bcrypt de 12 rondas. Las respuestas solo exponen `{ id, username, rol, activo }`. Se impide desactivar el propio administrador, cambiar su rol y dejar la instalación sin un administrador activo. La columna `activo` se agrega con `database/05_migracion_usuarios.sql` sin crear tablas nuevas.

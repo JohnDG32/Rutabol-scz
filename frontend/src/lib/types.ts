@@ -2,7 +2,12 @@ export type Rol = 'ADMIN' | 'CONDUCTOR' | 'PASAJERO' | 'ESTUDIANTE';
 export type Categoria = 'GENERAL' | 'ESCOLAR' | 'UNIVERSITARIO';
 export type EstadoMicro = 'DISPONIBLE' | 'EN_CIRCULACION' | 'LLENO' | 'FUERA_DE_SERVICIO' | 'EMERGENCIA';
 
-export interface Usuario { id: number; username: string; rol: Rol }
+export interface Usuario { id: number; username: string; rol: Rol; activo?: boolean }
+
+/** Proyección pública del CRUD: nunca incluye password_hash. */
+export interface UsuarioGestion { id: number; username: string; rol: Rol; activo: boolean }
+
+export type UsuarioInput = Pick<UsuarioGestion, 'username' | 'rol' | 'activo'> & { password: string };
 
 export interface Linea {
   id: number;

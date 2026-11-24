@@ -15,6 +15,7 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { ViajesModule } from './viajes/viajes.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { RealtimeModule } from './realtime/realtime.module';
     ViajesModule,
     ReportesModule,
     RealtimeModule,
+    UsuariosModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: RolesGuard },

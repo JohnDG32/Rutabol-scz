@@ -68,6 +68,7 @@ export function Acceso({ usuario, onSesion, avisar }: Props) {
         <div className="panelAcceso">
           <p>Sesión iniciada: <strong>{usuario.username}</strong></p>
           <span className={`chip rol-${usuario.rol.toLowerCase()}`}>{roles[usuario.rol] ?? usuario.rol}</span>
+          <a className="boton principal" href="/dashboard">Ir al dashboard</a>
           <button type="button" className="boton secundario" onClick={() => void salir()}>Cerrar sesión</button>
         </div>
       ) : (

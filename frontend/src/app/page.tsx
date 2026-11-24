@@ -100,6 +100,7 @@ export default function Home() {
             {esOperador && <a href="#conductor">Operación</a>}
             {esPasajero && <a href="#pasajero">Mi viaje</a>}
             {usuario?.rol === 'ADMIN' && <a href="#admin">Administración</a>}
+            {usuario && <a href="/dashboard">Dashboard</a>}
             <a href="#acceso">Acceso</a>
           </nav>
         </div>

@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { obtenerSocket } from '@/lib/socket';
 import type {
   Categoria, Conductor, ConductorInput, Estudiante, Linea, Micro, MicroInput,
-  FiltrosReporte, ResumenReporte, Tarifa,
+  FiltrosReporte, ResumenReporte, Rol, Tarifa, UsuarioGestion, UsuarioInput,
 } from '@/lib/types';
 
 interface Props {
@@ -15,10 +15,11 @@ interface Props {
   avisar: (mensaje: string) => void;
 }
 
-type Pestana = 'lineas' | 'micros' | 'conductores' | 'tarifas' | 'estudiantes' | 'reportes';
+type Pestana = 'lineas' | 'micros' | 'conductores' | 'tarifas' | 'estudiantes' | 'usuarios' | 'reportes';
 
 const estados: Micro['estado'][] = ['DISPONIBLE', 'EN_CIRCULACION', 'LLENO', 'FUERA_DE_SERVICIO', 'EMERGENCIA'];
 const categorias: Categoria[] = ['GENERAL', 'ESCOLAR', 'UNIVERSITARIO'];
+const roles: Rol[] = ['ADMIN', 'CONDUCTOR', 'PASAJERO', 'ESTUDIANTE'];
 
 const microInicial: MicroInput = {
   placa: '', interno: '', capacidad: 22, estado: 'DISPONIBLE', autorizado: false, lineaId: 1,
@@ -30,6 +31,7 @@ const estudianteInicial = {
   nombre: '', apellido: '', ci: '', categoria: 'ESCOLAR' as 'ESCOLAR' | 'UNIVERSITARIO',
   codigo: '', correoInstitucional: '', fotoUrl: '',
 };
+const usuarioInicial: UsuarioInput = { username: '', password: '', rol: 'PASAJERO', activo: true };
 
 function leerFoto(archivo: File | undefined): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -56,6 +58,9 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
   const [estudiantes, setEstudiantes] = useState<Estudiante[]>([]);
   const [estudianteForm, setEstudianteForm] = useState(estudianteInicial);
   const [validacion, setValidacion] = useState({ categoria: 'ESCOLAR' as 'ESCOLAR' | 'UNIVERSITARIO', codigo: '', fotoUrl: '' });
+  const [usuarios, setUsuarios] = useState<UsuarioGestion[]>([]);
+  const [usuarioForm, setUsuarioForm] = useState<UsuarioInput>(usuarioInicial);
+  const [usuarioEditando, setUsuarioEditando] = useState<number | null>(null);
   const [reporte, setReporte] = useState<ResumenReporte | null>(null);
   const [filtros, setFiltros] = useState<FiltrosReporte>({});
   const [procesando, setProcesando] = useState(false);
@@ -65,11 +70,20 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
       if (seccion === 'conductores') setConductores(await api.conductores());
       if (seccion === 'tarifas') setTarifas(await api.tarifas(0));
       if (seccion === 'estudiantes') setEstudiantes(await api.estudiantes());
+      if (seccion === 'usuarios') setUsuarios(await api.usuarios());
       if (seccion === 'reportes') setReporte(await api.resumen(filtros));
     } catch (e) {
       avisar(e instanceof Error ? e.message : 'No se pudo cargar la sección');
     }
   }, [avisar, filtros]);
+
+  // El dashboard puede abrir una pestaña concreta con /?tab=usuarios#admin.
+  useEffect(() => {
+    const solicitada = new URLSearchParams(window.location.search).get('tab');
+    if (solicitada && (['lineas', 'micros', 'conductores', 'tarifas', 'estudiantes', 'usuarios', 'reportes'] as string[]).includes(solicitada)) {
+      setPestana(solicitada as Pestana);
+    }
+  }, []);
 
   useEffect(() => { void cargarSeccion(pestana); }, [pestana, cargarSeccion]);
 
@@ -146,18 +160,35 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
     if (exito) setEstudianteForm({ ...estudianteInicial });
   }
 
+  async function guardarUsuario(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    const datos: UsuarioInput = { ...usuarioForm };
+    const exito = await ejecutar(
+      () => usuarioEditando === null
+        ? api.crearUsuario(datos)
+        : api.actualizarUsuario(usuarioEditando, {
+            username: datos.username,
+            rol: datos.rol,
+            activo: datos.activo,
+            ...(datos.password ? { password: datos.password } : {}),
+          }),
+      usuarioEditando === null ? 'Usuario creado.' : 'Usuario actualizado.'
+    );
+    if (exito) { setUsuarioEditando(null); setUsuarioForm({ ...usuarioInicial }); }
+  }
+
   return (
     <section id="admin" className="seccion panelOperativo">
       <div className="seccionTitulo">
         <div>
           <span className="sobre">RF-22 / RF-23</span>
           <h2>Panel administrativo</h2>
-          <p>Gestión de micros, conductores, tarifas, estudiantes y reportes estadísticos.</p>
+          <p>Gestión de micros, conductores, tarifas, estudiantes, usuarios y reportes estadísticos.</p>
         </div>
       </div>
 
       <div className="pestanas">
-        {(['lineas', 'micros', 'conductores', 'tarifas', 'estudiantes', 'reportes'] as Pestana[]).map((p) => (
+        {(['lineas', 'micros', 'conductores', 'tarifas', 'estudiantes', 'usuarios', 'reportes'] as Pestana[]).map((p) => (
           <button key={p} className={pestana === p ? 'activa' : ''} onClick={() => setPestana(p)}>{p}</button>
         ))}
       </div>
@@ -319,6 +350,50 @@ export function PanelAdmin({ lineas, micros, recargar, avisar }: Props) {
               <button className="boton secundario" disabled={procesando}>Validar estudiante</button>
             </form>
           </div>
+        </div>
+      )}
+
+      {pestana === 'usuarios' && (
+        <div className="formularioSeccion">
+          <form className="formulario" onSubmit={(e) => void guardarUsuario(e)}>
+            <h3 className="ancho">{usuarioEditando === null ? 'Crear usuario' : `Editar usuario #${usuarioEditando}`}</h3>
+            <label>Usuario<input required minLength={3} maxLength={80} pattern="[A-Za-z0-9._-]+" value={usuarioForm.username}
+              onChange={(e) => setUsuarioForm({ ...usuarioForm, username: e.target.value })} /></label>
+            <label>{usuarioEditando === null ? 'Contraseña (mínimo 12 caracteres)' : 'Nueva contraseña (vacío = conservar)'}
+              <input type="password" required={usuarioEditando === null} minLength={12} maxLength={200} value={usuarioForm.password}
+                onChange={(e) => setUsuarioForm({ ...usuarioForm, password: e.target.value })} /></label>
+            <label>Rol<select value={usuarioForm.rol} onChange={(e) => setUsuarioForm({ ...usuarioForm, rol: e.target.value as Rol })}>
+              {roles.map((rol) => <option key={rol} value={rol}>{rol}</option>)}
+            </select></label>
+            <label className="casilla"><input type="checkbox" checked={usuarioForm.activo}
+              onChange={(e) => setUsuarioForm({ ...usuarioForm, activo: e.target.checked })} /> Activo</label>
+            <div className="formAcciones">
+              <button className="boton principal" disabled={procesando}>Guardar usuario</button>
+              {usuarioEditando !== null && <button type="button" className="boton secundario"
+                onClick={() => { setUsuarioEditando(null); setUsuarioForm({ ...usuarioInicial }); }}>Cancelar</button>}
+            </div>
+          </form>
+          <div className="tablaWrap">
+            <table>
+              <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody>
+                {usuarios.map((usuario) => (
+                  <tr key={usuario.id}>
+                    <td><strong>{usuario.username}</strong></td>
+                    <td><span className={`chip rol-${usuario.rol.toLowerCase()}`}>{usuario.rol}</span></td>
+                    <td>{usuario.activo ? 'Activo' : 'Inactivo'}</td>
+                    <td className="acciones">
+                      <button onClick={() => { setUsuarioEditando(usuario.id); setUsuarioForm({ username: usuario.username, password: '', rol: usuario.rol, activo: usuario.activo }); }}>Editar</button>
+                      <button className="peligro" disabled={!usuario.activo}
+                        onClick={() => void ejecutar(() => api.desactivarUsuario(usuario.id), 'Usuario desactivado.')}>Desactivar</button>
+                    </td>
+                  </tr>
+                ))}
+                {!usuarios.length && <tr><td colSpan={4} className="vacio">No hay usuarios registrados.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+          <p className="muted">La contraseña se guarda con bcrypt y nunca se muestra. Un usuario desactivado no puede iniciar sesión ni usar los endpoints protegidos.</p>
         </div>
       )}
 

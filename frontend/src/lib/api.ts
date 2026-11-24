@@ -1,7 +1,7 @@
 import type {
   Abordaje, Categoria, ConfigNotificaciones, Conductor, ConductorInput, Estudiante, FiltrosReporte, Historial, Linea,
   Micro, MicroCercano, MicroInput, Notificacion, Pago, ResumenReporte,
-  ResultadoTrasbordo, Tarifa, Usuario, Viaje,
+  ResultadoTrasbordo, Tarifa, Usuario, UsuarioGestion, UsuarioInput, Viaje,
 } from './types';
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://www.rutabol.test/api';
@@ -49,6 +49,13 @@ export const api = {
     request<Usuario>('/auth/login', json('POST', { username, password })),
   usuarioActual: () => request<Usuario>('/auth/me'),
   logout: () => request<{ mensaje: string }>('/auth/logout', { method: 'POST' }),
+
+  // Usuarios y roles (solo ADMIN)
+  usuarios: () => request<UsuarioGestion[]>('/usuarios'),
+  crearUsuario: (data: UsuarioInput) => request<UsuarioGestion>('/usuarios', json('POST', data)),
+  actualizarUsuario: (id: number, data: Partial<UsuarioInput>) =>
+    request<UsuarioGestion>(`/usuarios/${id}`, json('PATCH', data)),
+  desactivarUsuario: (id: number) => request<void>(`/usuarios/${id}`, { method: 'DELETE' }),
 
   // Micros y geolocalización
   crearMicro: (data: MicroInput) => request<Micro>('/micros', json('POST', data)),

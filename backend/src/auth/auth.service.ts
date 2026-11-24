@@ -8,6 +8,7 @@ interface UsuarioRow {
   username: string;
   password_hash: string;
   rol: Rol;
+  activo: boolean;
 }
 
 export interface UsuarioAutenticado {
@@ -92,13 +93,14 @@ export class AuthService implements OnModuleInit {
 
   async validar(username: string, password: string): Promise<UsuarioAutenticado> {
     const rows = await this.db.query<UsuarioRow>(
-      'SELECT id, username, password_hash, rol FROM usuarios WHERE username = $1',
+      'SELECT id, username, password_hash, rol, activo FROM usuarios WHERE username = $1',
       [username]
     );
     const usuario = rows[0];
     if (!usuario || !(await compare(password, usuario.password_hash))) {
       throw new UnauthorizedException('Credenciales incorrectas');
     }
+    if (!usuario.activo) throw new UnauthorizedException('El usuario está desactivado');
     return { id: usuario.id, username: usuario.username, rol: usuario.rol };
   }
 }
