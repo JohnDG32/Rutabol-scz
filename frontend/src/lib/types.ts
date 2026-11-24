@@ -9,6 +9,28 @@ export interface UsuarioGestion { id: number; username: string; rol: Rol; activo
 
 export type UsuarioInput = Pick<UsuarioGestion, 'username' | 'rol' | 'activo'> & { password: string };
 
+/** Resumen del /dashboard; los campos por rol son opcionales. */
+export interface MetricasDashboard {
+  rol: Rol;
+  lineas: number;
+  micros: number;
+  microsDisponibles: number;
+  conductores: number;
+  viajesActivos: number;
+  pagosHoy: number;
+  recaudadoHoyBs: number;
+  usuariosActivos?: number;
+  usuariosInactivos?: number;
+  estudiantesVerificados?: number;
+  misViajesActivos?: number;
+  misAbordajesHoy?: number;
+  posicionesHoy?: number;
+  misPagos?: number;
+  misPagosConfirmados?: number;
+  miGastoBs?: number;
+  tarifasVigentes?: number;
+}
+
 export interface Linea {
   id: number;
   nombre: string;

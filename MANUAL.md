@@ -498,13 +498,27 @@ Si tenés la API abierta, detenela con `Ctrl + C` y volvé a iniciarla con `npm 
 1. Abrí `https://www.rutabol.test`.
 2. Ingresá como `admin`, `conductor1`, `pasajero1` o `estudiante1` con las claves de la tabla de usuarios de demostración.
 3. Después de ingresar aparece un botón **Ir al dashboard** en el panel de acceso; también hay un enlace **Dashboard** en la barra superior. Presioná cualquiera de los dos (o escribí `https://www.rutabol.test/dashboard`).
-4. Vas a ver tu nombre, un chip con tu rol y cuatro tarjetas. Cada tarjeta lleva al panel que te corresponde:
+4. Vas a ver tu nombre, un chip con tu rol, ocho métricas y cuatro tarjetas. Las métricas se calculan en el servidor con `GET /api/dashboard/metricas` y cambian según el rol:
+   - **ADMIN:** líneas, micros, viajes activos, pagos de hoy, usuarios activos/inactivos, recaudado hoy y estudiantes verificados.
+   - **CONDUCTOR:** líneas, micros, viajes activos, pagos de hoy, mis viajes, abordajes de hoy, posiciones GPS de hoy y conductores activos.
+   - **PASAJERO / ESTUDIANTE:** líneas, micros, viajes activos, pagos de hoy, mis pagos, pagos confirmados, mi gasto y tarifas vigentes.
+5. Cada tarjeta lleva al panel que te corresponde:
    - **ADMIN:** usuarios y roles, panel administrativo, reportes y seguimiento de micros.
    - **CONDUCTOR:** iniciar viaje, posición GPS, trasbordos/emergencias y consultas.
    - **PASAJERO:** mi viaje, pagar pasaje, notificaciones y micros cercanos.
    - **ESTUDIANTE:** mi viaje con tarifa diferenciada, notificaciones y consultas.
-5. Si no hay sesión, el dashboard muestra un botón **Ir a iniciar sesión** en lugar de las tarjetas.
-6. **Cerrar sesión** borra la cookie `rutabol.sid` y vuelve al inicio.
+6. Si no hay sesión, el dashboard muestra un botón **Ir a iniciar sesión** en lugar de las tarjetas.
+7. **Cerrar sesión** borra la cookie `rutabol.sid` y vuelve al inicio.
+
+**Paso 3.1: cargar datos de operación para ver las métricas.**
+
+En una instalación nueva los datos ya son automáticos porque `database/06_datos_operacion.sql` se monta en `docker-entrypoint-initdb.d`. Si tu base ya existía antes de este cambio, ejecutá desde la raíz del proyecto:
+
+```powershell
+Get-Content database\06_datos_operacion.sql -Raw | docker compose exec -T postgres psql -U micros -d micros_scz -v ON_ERROR_STOP=1 -f -
+```
+
+Debe responder varios `INSERT` y `setval`. El script se puede repetir: no duplica registros porque usa IDs desde 9001 y claves únicas. Agrega líneas, micros, conductores, viajes, pagos, abordajes y posiciones ficticias. Si volvés a correr `tests/verificar-flujo.ps1`, esa prueba limpia viajes y pagos al inicio y al final, así que puede que las métricas vuelvan a cero; repetí el comando anterior para repoblar.
 
 **Paso 4: crear o editar usuarios (solo ADMIN).**
 

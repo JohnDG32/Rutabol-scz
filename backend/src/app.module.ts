@@ -16,6 +16,7 @@ import { ViajesModule } from './viajes/viajes.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UsuariosModule } from './usuarios/usuarios.module';
     ReportesModule,
     RealtimeModule,
     UsuariosModule,
+    DashboardModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: RolesGuard },

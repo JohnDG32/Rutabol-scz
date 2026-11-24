@@ -1,6 +1,6 @@
 import type {
   Abordaje, Categoria, ConfigNotificaciones, Conductor, ConductorInput, Estudiante, FiltrosReporte, Historial, Linea,
-  Micro, MicroCercano, MicroInput, Notificacion, Pago, ResumenReporte,
+  Micro, MicroCercano, MicroInput, MetricasDashboard, Notificacion, Pago, ResumenReporte,
   ResultadoTrasbordo, Tarifa, Usuario, UsuarioGestion, UsuarioInput, Viaje,
 } from './types';
 
@@ -49,6 +49,7 @@ export const api = {
     request<Usuario>('/auth/login', json('POST', { username, password })),
   usuarioActual: () => request<Usuario>('/auth/me'),
   logout: () => request<{ mensaje: string }>('/auth/logout', { method: 'POST' }),
+  metricasDashboard: () => request<MetricasDashboard>('/dashboard/metricas'),
 
   // Usuarios y roles (solo ADMIN)
   usuarios: () => request<UsuarioGestion[]>('/usuarios'),

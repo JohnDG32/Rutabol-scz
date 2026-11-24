@@ -26,6 +26,8 @@ services:
       - ./database/04_migracion_notificaciones.sql:/docker-entrypoint-initdb.d/04_migracion_notificaciones.sql:ro
       - ./database/05_migracion_usuarios.sql:/docker-entrypoint-initdb.d/05_migracion_usuarios.sql:ro
       - ./database/05_migracion_usuarios.sql:/usuarios-migration.sql:ro
+      - ./database/06_datos_operacion.sql:/docker-entrypoint-initdb.d/06_datos_operacion.sql:ro
+      - ./database/06_datos_operacion.sql:/datos-operacion.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U micros -d micros_scz"]
       interval: 5s

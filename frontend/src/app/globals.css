@@ -248,6 +248,49 @@ button {
   margin-top: 14px;
 }
 
+.dashboardMetricas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0 28px;
+}
+
+.dashboardMetricas .metrica {
+  background: white;
+  border: 1px solid #e1e8ec;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dashboardMetricas .metrica span {
+  color: #64798a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.dashboardMetricas .metrica strong {
+  color: #0f766e;
+  font-size: 24px;
+}
+
+.dashboardMetricas .metrica small {
+  color: #435668;
+  font-size: 12px;
+}
+
+@media (max-width: 950px) {
+  .dashboardMetricas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .dashboardMetricas { grid-template-columns: 1fr; }
+}
+
 .chip {
   font-size: 12px;
   background: #f0f5f7;

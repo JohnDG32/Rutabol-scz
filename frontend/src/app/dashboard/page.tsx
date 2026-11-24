@@ -3,13 +3,54 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import type { Rol, Usuario } from '@/lib/types';
+import type { MetricasDashboard, Rol, Usuario } from '@/lib/types';
 
 interface Acceso {
   titulo: string;
   texto: string;
   href: string;
   etiqueta: string;
+}
+
+interface Metrica {
+  etiqueta: string;
+  valor: string;
+  detalle: string;
+}
+
+const dinero = (valor: number) => new Intl.NumberFormat('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
+
+function metricasPorRol(rol: Rol, m: MetricasDashboard): Metrica[] {
+  const comun: Metrica[] = [
+    { etiqueta: 'Líneas', valor: String(m.lineas), detalle: 'en el catálogo' },
+    { etiqueta: 'Micros', valor: String(m.micros), detalle: `${m.microsDisponibles} disponibles` },
+    { etiqueta: 'Viajes activos', valor: String(m.viajesActivos), detalle: 'en curso' },
+    { etiqueta: 'Pagos hoy', valor: String(m.pagosHoy), detalle: 'registrados hoy' },
+  ];
+
+  if (rol === 'ADMIN') return [
+    ...comun,
+    { etiqueta: 'Usuarios activos', valor: String(m.usuariosActivos ?? 0), detalle: 'pueden ingresar' },
+    { etiqueta: 'Usuarios inactivos', valor: String(m.usuariosInactivos ?? 0), detalle: 'dados de baja' },
+    { etiqueta: 'Recaudado hoy', valor: `Bs ${dinero(m.recaudadoHoyBs)}`, detalle: 'pagos confirmados' },
+    { etiqueta: 'Estudiantes', valor: String(m.estudiantesVerificados ?? 0), detalle: 'verificados' },
+  ];
+
+  if (rol === 'CONDUCTOR') return [
+    ...comun,
+    { etiqueta: 'Mis viajes', valor: String(m.misViajesActivos ?? 0), detalle: 'en curso' },
+    { etiqueta: 'Abordajes hoy', valor: String(m.misAbordajesHoy ?? 0), detalle: 'a bordo' },
+    { etiqueta: 'Posiciones hoy', valor: String(m.posicionesHoy ?? 0), detalle: 'GPS registradas' },
+    { etiqueta: 'Conductores', valor: String(m.conductores), detalle: 'activos' },
+  ];
+
+  return [
+    ...comun,
+    { etiqueta: 'Mis pagos', valor: String(m.misPagos ?? 0), detalle: 'historial' },
+    { etiqueta: 'Confirmados', valor: String(m.misPagosConfirmados ?? 0), detalle: 'comprobantes' },
+    { etiqueta: 'Mi gasto', valor: `Bs ${dinero(m.miGastoBs ?? 0)}`, detalle: 'pagos confirmados' },
+    { etiqueta: 'Tarifas', valor: String(m.tarifasVigentes ?? 0), detalle: 'vigentes' },
+  ];
 }
 
 const accesosPorRol: Record<Rol, Acceso[]> = {
@@ -49,16 +90,24 @@ const nombresRoles: Record<Rol, string> = {
 export default function Dashboard() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [metricas, setMetricas] = useState<MetricasDashboard | null>(null);
   const [revisando, setRevisando] = useState(true);
   const [error, setError] = useState('');
 
   const cargar = useCallback(async () => {
     setRevisando(true);
+    setMetricas(null);
     try {
-      setUsuario(await api.usuarioActual());
+      const [datosUsuario, datosMetricas] = await Promise.all([
+        api.usuarioActual(),
+        api.metricasDashboard().catch(() => null),
+      ]);
+      setUsuario(datosUsuario);
+      setMetricas(datosMetricas);
       setError('');
     } catch {
       setUsuario(null);
+      setMetricas(null);
     } finally {
       setRevisando(false);
     }
@@ -123,6 +172,16 @@ export default function Dashboard() {
                 <p>Sesión iniciada como <span className={`chip rol-${usuario.rol.toLowerCase()}`}>{nombresRoles[usuario.rol]}</span></p>
               </div>
               <button type="button" className="boton secundario" onClick={() => void salir()}>Cerrar sesión</button>
+            </div>
+
+            <div className="dashboardMetricas">
+              {metricas ? metricasPorRol(usuario.rol, metricas).map((metrica) => (
+                <article className="metrica" key={metrica.etiqueta}>
+                  <span>{metrica.etiqueta}</span>
+                  <strong>{metrica.valor}</strong>
+                  <small>{metrica.detalle}</small>
+                </article>
+              )) : <p className="muted">No se pudieron cargar las métricas en este momento.</p>}
             </div>
 
             <div className="tarjetas">

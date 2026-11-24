@@ -288,6 +288,25 @@ La ruta **`/dashboard`** muestra un panel posterior al login con tarjetas distin
 - Reglas de seguridad: un administrador no puede desactivarse ni cambiar su propio rol desde el CRUD, y no se puede dejar la instalación sin un administrador activo.
 - Un usuario inactivo no puede iniciar sesión y pierde de inmediato el acceso a los endpoints protegidos aunque su cookie siga viva. Los cambios de rol también surten efecto sin esperar a que expire la sesión.
 
+### Métricas del dashboard y datos de operación
+
+`GET /api/dashboard/metricas` devuelve un resumen calculado en PostgreSQL según el rol de la sesión:
+
+- Comunes: `lineas`, `micros`, `microsDisponibles`, `conductores`, `viajesActivos`, `pagosHoy` y `recaudadoHoyBs`.
+- `ADMIN`: `usuariosActivos`, `usuariosInactivos` y `estudiantesVerificados`.
+- `CONDUCTOR`: `misViajesActivos`, `misAbordajesHoy` y `posicionesHoy`.
+- `PASAJERO` / `ESTUDIANTE`: `misPagos`, `misPagosConfirmados`, `miGastoBs` y `tarifasVigentes`.
+
+El dashboard muestra ocho tarjetas con esos valores. La respuesta nunca incluye `password_hash` ni datos personales.
+
+`database/06_datos_operacion.sql` agrega datos ficticios de operación (3 líneas, 4 micros, 3 conductores, 3 viajes, 4 pagos, 3 abordajes y 6 posiciones) con IDs desde 9001 para no mezclarse con la prueba integral. En instalaciones nuevas se aplica solo desde `docker-entrypoint-initdb.d`. En una base ya creada:
+
+```powershell
+Get-Content database\06_datos_operacion.sql -Raw | docker compose exec -T postgres psql -U micros -d micros_scz -v ON_ERROR_STOP=1 -f -
+```
+
+El script es idempotente: se puede repetir sin duplicar registros.
+
 Para instalaciones con volumen de PostgreSQL ya creado, aplicar la migración:
 
 ```powershell
