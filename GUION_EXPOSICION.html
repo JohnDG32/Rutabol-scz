@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guion de exposición · RUTABOL-SCZ · Actividad 01</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#ffffff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --accent:#b45309; --accent-soft:#fef3c7;
+    --screen:#eef2ff; --screen-line:#c7d2fe; --say:#ecfdf5; --say-line:#a7f3d0;
+    --shadow:0 1px 2px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:Segoe UI,Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+  header{background:linear-gradient(135deg,#0f766e,#115e59);color:#fff;padding:28px 20px 20px}
+  header .wrap{max-width:1080px;margin:0 auto}
+  h1{margin:0 0 6px;font-size:1.75rem;letter-spacing:-.02em}
+  header p{margin:0;color:#d1fae5;font-size:.95rem}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
+    padding:4px 10px;border-radius:999px;font-size:.78rem;font-weight:600}
+  nav{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);
+    box-shadow:0 2px 8px rgba(15,23,42,.04)}
+  nav .wrap{max-width:1080px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:8px 20px}
+  .tab{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;
+    padding:9px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .tab:hover{background:#f1f5f9;color:var(--ink)}
+  .tab.active{background:var(--brand);color:#fff}
+  main{max-width:1080px;margin:0 auto;padding:26px 20px 60px}
+  .panel{display:none}
+  .panel.active{display:block}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;box-shadow:var(--shadow);margin-bottom:18px}
+  .lead h2{margin:0 0 8px;font-size:1.25rem}
+  .lead p{margin:6px 0;color:#334155}
+  .titulo-encargo{border-left:4px solid var(--accent);background:var(--accent-soft);
+    padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.95rem}
+  .alerta{border-left:4px solid #dc2626;background:#fef2f2;padding:10px 14px;
+    border-radius:0 10px 10px 0;margin:12px 0;font-size:.9rem}
+  .bloque{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:18px 22px;margin:0 0 16px}
+  .bloque-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .tiempo{font-variant-numeric:tabular-nums;background:var(--brand-soft);color:#115e59;
+    font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:6px;white-space:nowrap}
+  .bloque h3{margin:0;font-size:1.08rem}
+  .pantalla,.decir{border-radius:10px;padding:12px 14px;margin:10px 0}
+  .pantalla{background:var(--screen);border:1px solid var(--screen-line)}
+  .decir{background:var(--say);border:1px solid var(--say-line)}
+  .etiqueta{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.08em;
+    text-transform:uppercase;color:#4338ca;margin-bottom:6px}
+  .decir .etiqueta{color:#047857}
+  .decir blockquote{margin:0;font-size:1.02rem;color:#064e3b}
+  ul{margin:8px 0;padding-left:20px}
+  li{margin:4px 0}
+  .cmd{position:relative;background:#0b1220;color:#e2e8f0;border-radius:10px;
+    padding:14px 14px 34px;overflow-x:auto;margin:10px 0 4px;font-size:.82rem;
+    font-family:Consolas,"Cascadia Mono",Menlo,monospace;line-height:1.5}
+  .cmd code{white-space:pre}
+  .copy{position:absolute;right:8px;bottom:8px;border:1px solid #334155;background:#1e293b;
+    color:#e2e8f0;border-radius:6px;padding:4px 10px;font:inherit;font-size:.72rem;cursor:pointer}
+  .copy:hover{background:#334155}
+  .nota{font-size:.85rem;color:var(--muted);margin:8px 0 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:12px}
+  .mini{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .mini strong{display:block;color:var(--brand);font-size:.95rem}
+  .mini span{font-size:.85rem;color:var(--muted)}
+  .continua{background:#0f172a;color:#fff;border-radius:10px;padding:10px 14px;
+    font-size:.9rem;margin-top:14px}
+  footer{border-top:1px solid var(--line);color:var(--muted);text-align:center;
+    padding:18px 20px 30px;font-size:.82rem}
+  a{color:var(--brand)}
+  @media print{
+    header,nav,footer,.copy{display:none}
+    body{background:#fff}
+    main{max-width:none;padding:0}
+    .panel{display:block!important;page-break-before:always}
+    .bloque,.lead{box-shadow:none;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Guion de exposición · RUTABOL-SCZ</h1>
+    <p>Actividad 01 · RF/RNF · Cookies y sesión · Hash · Base de datos · Extras al final</p>
+    <div class="badges">
+      <span class="badge">Rama: rutabol-requerimientos</span>
+      <span class="badge">Video grabado · 3 partes</span>
+      <span class="badge">~24 min en total</span>
+      <span class="badge">John Diego · Johan · Carlos</span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap">
+    <button class="tab active" data-target="comun">Antes de grabar</button>
+    <button class="tab" data-target="guion1">1 · John Diego — Negocio</button>
+    <button class="tab" data-target="guion2">2 · Johan — Arquitectura y BD</button>
+    <button class="tab" data-target="guion3">3 · Carlos — Evidencias y extras</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ===================== COMÚN ===================== -->
+<section id="comun" class="panel active">
+  <div class="lead">
+    <h2>Título del trabajo (para la tarjeta inicial)</h2>
+    <div class="titulo-encargo">
+      “Implementación del proyecto avanzado en clases Ruta-bol en base a los RNF y RF de la actividad 1.
+      Aplicación de Cookies y Session dentro del proyecto. Hash e implementation de base de datos.
+      De paso, todo lo extra que hicimos.”
+    </div>
+    <p>Graben por partes y empalmen. Cada bloque empieza con una tarjeta de 3 s:
+      <strong>Nombre · Rol · Rama</strong>, y termina con “Continúa &lt;siguiente nombre&gt;”.</p>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">SETUP</span><h3>Preparación común</h3></div>
+    <div class="pantalla">
+      <ul>
+        <li>Clon limpio en la rama base:
+          <pre class="cmd"><code>git clone -b rutabol-requerimientos https://github.com/JohnDG32/Rutabol-scz.git Rutabol-scz
+cd Rutabol-scz
+git branch --show-current</code><button class="copy" type="button">Copiar</button></pre>
+          Debe mostrar <code>rutabol-requerimientos</code>. Así no se mezclan cambios de <code>rutabol-extras</code>.
+        </li>
+        <li>Levantar infraestructura y servicios:
+          <pre class="cmd"><code>docker compose up -d
+cd backend  ; npm run start:dev
+cd frontend ; npm run dev</code><button class="copy" type="button">Copiar</button></pre>
+        </li>
+        <li>Abrir <code>https://www.rutabol.test</code> y confirmar el candadito.</li>
+        <li>Resolución 1920×1080, zoom del navegador al 125 %, terminal con fuente grande.</li>
+      </ul>
+    </div>
+    <div class="alerta"><strong>No muestren secretos:</strong> tapen <code>SESSION_SECRET</code>,
+      <code>ADMIN_PASSWORD</code> y la contraseña de PostgreSQL cuando aparezca <code>.env</code> o <code>.env.example</code>.</div>
+    <div class="pantalla">
+      <strong>Usuarios de demostración</strong>
+      <div class="grid">
+        <div class="mini"><strong>admin</strong><span>clave de ADMIN_PASSWORD en backend\.env</span></div>
+        <div class="mini"><strong>conductor1</strong><span>RutabolDemo123 · CONDUCTOR</span></div>
+        <div class="mini"><strong>pasajero1</strong><span>RutabolDemo123 · PASAJERO</span></div>
+        <div class="mini"><strong>estudiante1</strong><span>RutabolDemo123 · ESTUDIANTE</span></div>
+      </div>
+    </div>
+    <p class="nota">La prueba integral limpia al inicio y al final, así que pueden grabar sin dejar datos sucios.</p>
+  </div>
+</section>
+
+<!-- ===================== GUION 1 ===================== -->
+<section id="guion1" class="panel">
+  <div class="lead">
+    <h2>Guion 1 · John Diego — Negocio y flujo de usuario</h2>
+    <p><strong>Duración:</strong> 8 min · <strong>Rama:</strong> rutabol-requerimientos ·
+       <strong>Objetivo:</strong> recorrer los 24 RF desde los cuatro actores.</p>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">0:00 – 0:35</span><h3>Presentación y alcance</h3></div>
+    <div class="pantalla">Tarjeta inicial y <code>REQUERIMIENTOS.md</code> §1 y §3.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Soy John Diego. Les muestro cómo el sistema cubre los 24 requerimientos funcionales y los 18 no funcionales
+      de la Actividad 01. Hay cuatro actores: administrador, conductor, pasajero y estudiante. Todo pasa por la web,
+      sin apps nativas. Empiezo por el flujo de negocio real, de punta a punta.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">0:35 – 2:00</span><h3>Administración</h3></div>
+    <div class="pantalla">Login como <code>admin</code> → <strong>Administración</strong>. Crear línea, micro con
+      capacidad 20, conductor asignado y tarifa por categoría.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “El administrador registra la línea y el micro. Fíjense en dos validaciones: el interno y la placa son únicos,
+      y la capacidad solo acepta entre 18 y 25. Eso es RF-01 y RF-09, y ya está enforced en la base de datos, no solo
+      en el formulario. RF-02 es clave: el micro nace autorizado, y un viaje no arranca si no lo está. RF-03 asigna el
+      conductor al micro, RF-04 fija la tarifa autorizada y RF-22 junta toda esta gestión en un solo panel.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">2:00 – 3:20</span><h3>Pasajero</h3></div>
+    <div class="pantalla">Login como <code>pasajero1</code> → <strong>Consultas</strong> → tarifa filtrada →
+      <strong>Micros cercanos</strong> con ubicación de demostración → crear pago con token simulado → confirmar.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “El pasajero consulta tarifas públicas, RF-05, y ve los micros en un radio de 5 km calculado con Haversine sobre
+      la última posición: RF-06 y RF-07. Después genera un pago con un token simulado. El monto no lo escribe él: lo
+      calcula el sistema desde la tarifa vigente. Eso es RF-17 y RF-18. Con RF-15, la categoría queda grabada en el
+      pago y en el abordaje para que no haya ambigüedad después.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">3:20 – 4:45</span><h3>Conductor</h3></div>
+    <div class="pantalla">Login como <code>conductor1</code> → iniciar viaje → abordar → intentar abordar sin pago
+      confirmado o con micro lleno → bajar pasajero.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “El conductor inicia el viaje solo si el micro está autorizado, RF-02. El abordaje exige pago confirmado: si no
+      lo está, la API responde 409 y no se registra nada. Eso es la regla RN-11. Si el micro llega a su capacidad,
+      aparece la alerta y se bloquea el abordaje: RF-09 y RF-10. Con RF-08 controlamos altas y bajas, y con RF-24 el
+      estado del micro cambia a EN_CIRCULACIÓN o LLENO.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">4:45 – 6:20</span><h3>Estudiante, trasbordo y emergencia</h3></div>
+    <div class="pantalla">Login como <code>estudiante1</code> → tarifa diferenciada → validación con RUDE/código y
+      foto → trasbordo → emergencia → notificaciones.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “El estudiante tiene su tarifa diferenciada, pero solo después de la verificación: RF-13 para escolares con RUDE
+      y foto, RF-14 para universitarios con código y correo @upds.edu.bo, RF-16 para la validación. Hago un trasbordo
+      entre micros de la misma línea: RF-11 crea el viaje destino y RF-12 reutiliza el mismo pago, así que no se cobra
+      dos veces. Y si hay una emergencia, RF-19 pone el micro fuera de circulación y RF-20 dispara avisos a pasajeros y
+      administración. Está todo en el panel de notificaciones.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">6:20 – 7:30</span><h3>Historial y reportes</h3></div>
+    <div class="pantalla"><strong>Historial</strong> y <strong>Reportes</strong> como pasajero y como admin; mostrar
+      filtros y exportación CSV.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Cada usuario ve su historial de viajes, pagos, trasbordos y micros: RF-21. El administrador tiene RF-23:
+      pasajeros, pagos, ocupación, trasbordos y emergencias, con filtros y exportación a CSV. Con esto quedan cubiertos
+      los 24 RF. Ahora Johan les muestra cómo está sostenido por la arquitectura, la sesión, el hash y la base de datos.”
+    </blockquote></div>
+    <div class="continua">Continúa Johan.</div>
+  </div>
+</section>
+
+<!-- ===================== GUION 2 ===================== -->
+<section id="guion2" class="panel">
+  <div class="lead">
+    <h2>Guion 2 · Johan — Arquitectura, cookies/sesión, hash y base de datos</h2>
+    <p><strong>Duración:</strong> 8 min · <strong>Rama:</strong> rutabol-requerimientos ·
+       <strong>Objetivo:</strong> explicar la capa técnica y los RNF.</p>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">0:00 – 0:30</span><h3>Arquitectura</h3></div>
+    <div class="pantalla">Tarjeta y diagrama de <code>REQUERIMIENTOS.md</code> §2.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Soy Johan. Esta es la arquitectura: Next.js en el navegador, API NestJS bajo /api y PostgreSQL con volumen
+      persistente. Entre el navegador y la API hay una cookie de sesión; dentro de la API hay dos capas globales:
+      RolesGuard y AuditoriaInterceptor.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">0:30 – 2:20</span><h3>Cookies y sesión</h3></div>
+    <div class="pantalla">Terminal:</div>
+    <pre class="cmd"><code>curl.exe --ssl-no-revoke -i -X POST https://www.rutabol.test/api/auth/login -H "Content-Type: application/json" -d '{"username":"pasajero1","password":"RutabolDemo123"}' | Select-String 'HTTP/|Set-Cookie'</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="pantalla">Después, con jar de cookies:</div>
+    <pre class="cmd"><code>curl.exe --ssl-no-revoke -c cookies.txt -X POST https://www.rutabol.test/api/auth/login -H "Content-Type: application/json" -d '{"username":"pasajero1","password":"RutabolDemo123"}'
+curl.exe --ssl-no-revoke -b cookies.txt https://www.rutabol.test/api/auth/me
+Remove-Item cookies.txt</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Fíjense en el Set-Cookie: rutabol.sid, HttpOnly, Secure y SameSite=Lax. HttpOnly evita que JavaScript lea la
+      cookie; Secure la obliga a viajar por HTTPS; SameSite=Lax reduce el riesgo de envío cross-site. Es host-only, no
+      un dominio compartido. La sesión no vive en localStorage: se guarda en PostgreSQL con connect-pg-simple, en su
+      propia tabla. Con /api/auth/me comprobamos la identidad, y /api/auth/logout la destruye. Los endpoints públicos
+      no piden sesión; los de rol sí pasan por RolesGuard. Eso es RNF-01 y RNF-02.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">2:20 – 3:40</span><h3>Hash de contraseñas</h3></div>
+    <div class="pantalla">Terminal:</div>
+    <pre class="cmd"><code>docker compose exec -T postgres psql -U micros -d micros_scz -c "SELECT username, left(password_hash, 7) AS prefijo, length(password_hash) AS longitud FROM usuarios ORDER BY username;"</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “En la base no se guarda la contraseña: se guarda un hash bcrypt con factor de costo 12. El prefijo $2b$12$ y los
+      60 caracteres lo confirman. En el login se compara con bcrypt, nunca se desencripta. Tampoco aparece en auditoría:
+      el interceptor sanea contraseñas, tokens y fotos. Y en pagos solo viaja un token simulado, así que no hay datos de
+      tarjeta: RNF-15.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">3:40 – 6:10</span><h3>Base de datos</h3></div>
+    <div class="pantalla">Terminal:</div>
+    <pre class="cmd"><code>docker compose exec -T postgres psql -U micros -d micros_scz -c "\dt"
+docker compose exec -T postgres psql -U micros -d micros_scz -c "\d micros"
+docker compose exec -T postgres psql -U micros -d micros_scz -c "\d pagos"</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="pantalla">Después, <code>database/01_init.sql</code> líneas 12–18 y 83–96 en el editor.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Son 14 tablas más la tabla de sesiones. La integridad no depende del frontend: UNIQUE en placa, interno,
+      referencia de pago y código de estudiante; claves foráneas entre viajes, pagos, abordajes y trasbordos; CHECK de
+      capacidad entre 18 y 25, de latitudes entre -90 y 90, y de estados válidos. Hay índices, incluidos índices
+      parciales para la tarifa activa y el viaje en curso de un micro. Los datos de demostración se crean solos al
+      inicializar. Eso es RNF-09, y es lo que evita estados imposibles aunque alguien llame a la API directo.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">6:10 – 7:30</span><h3>RNF y evidencias</h3></div>
+    <div class="pantalla"><code>REQUERIMIENTOS.md</code> §9. Si alcanza:
+      <pre class="cmd"><code>curl.exe --ssl-no-revoke -I http://www.rutabol.test | Select-String 'HTTP/|Location'</code><button class="copy" type="button">Copiar</button></pre>
+    </div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Los no funcionales también están medidos: 400 peticiones sin errores, promedio de 87 milisegundos y p95 de 124,
+      muy por debajo de los 3 segundos de RNF-03. El restore con pg_dump dejó las 14 tablas con conteos idénticos:
+      RNF-11. HTTP redirige a HTTPS, y RNF-05 a RNF-10 quedan cubiertos con la interfaz en español, validación GPS,
+      WebSocket y polling de respaldo, y auditoría. Carlos cierra con las pruebas y con lo que agregamos después.”
+    </blockquote></div>
+    <div class="continua">Continúa Carlos.</div>
+  </div>
+</section>
+
+<!-- ===================== GUION 3 ===================== -->
+<section id="guion3" class="panel">
+  <div class="lead">
+    <h2>Guion 3 · Carlos — Verificación, evidencias y extras</h2>
+    <p><strong>Duración:</strong> 8 min · <strong>Ramas:</strong> rutabol-requerimientos (5 min) y
+       rutabol-extras (3 min) · <strong>Objetivo:</strong> probar y mostrar mejoras fuera de la Actividad 01.</p>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">0:00 – 0:25</span><h3>Presentación</h3></div>
+    <div class="pantalla">Tarjeta y carpeta <code>tests/</code>.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Soy Carlos. Muestro las evidencias de que lo anterior funciona y, al final, las mejoras que salieron de la
+      Actividad 01.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">0:25 – 1:40</span><h3>Prueba integral</h3></div>
+    <div class="pantalla">Ejecutar y mostrar el final:</div>
+    <pre class="cmd"><code>powershell -ExecutionPolicy Bypass -File tests\verificar-flujo.ps1</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Esta prueba limpia al inicio y al final, así que es repetible. Termina con 45 de 45. Cubre login por rol,
+      capacidad de 18 y rechazo de 26, abordaje sin pago confirmado rechazado, trasbordo con el mismo pago, emergencia
+      con notificaciones y reportes con filtros y CSV. No es una revisión visual: son llamadas reales a la API.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">1:40 – 2:30</span><h3>GPS y tiempo real</h3></div>
+    <div class="pantalla">Ejecutar, o mostrar la salida ya grabada:</div>
+    <pre class="cmd"><code>powershell -ExecutionPolicy Bypass -File tests\verificar-gps-real.ps1
+powershell -ExecutionPolicy Bypass -File tests\verificar-websocket.ps1</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Tres de tres para el GPS real: el origen GPS_NAVEGADOR se guarda y se etiqueta en micros cercanos, mientras el
+      default sigue siendo SIMULADO. Cuatro de cuatro para WebSocket: el transporte es websocket sobre HTTPS, con
+      polling de 60 segundos como respaldo. El GPS real del navegador es RNF-05 y el tiempo real es RNF-16.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">2:30 – 3:15</span><h3>Carga, restore y manual</h3></div>
+    <div class="pantalla">Tablas de <code>REQUERIMIENTOS.md</code> §9 y <code>MANUAL.md</code> §1.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Carga: 400 peticiones, cero errores. Restore: 14 de 14 tablas idénticas. Y el manual para terceros arranca con
+      el clon directo a rutabol-requerimientos, crea los .env, instala mkcert, levanta Docker y abre
+      https://www.rutabol.test con candadito. Cualquier persona del curso puede reproducirlo sin conocer el proyecto.
+      Esa es la entrega de la Actividad 01.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">3:15 – 3:40</span><h3>Corte hacia extras</h3></div>
+    <div class="pantalla">Tarjeta: <strong>“A partir de acá: rama rutabol-extras — NO es Actividad 01”</strong>.
+      Cambiar de rama o usar el otro clon.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Hasta acá era la rama de requerimientos. Lo que sigue son extras opcionales que hicimos después, en otra rama,
+      sin romper el modo simulado ni las 45 pruebas anteriores.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">3:40 – 4:25</span><h3>Mapa real</h3></div>
+    <div class="pantalla"><strong>Micros cercanos</strong> → mapa Leaflet/OpenStreetMap → cambiar a mapa esquemático.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Primer extra: mapa callejero real con OpenStreetMap, círculo de 5 km, un marcador por micro y su distancia. Si no
+      hay internet, avisa y se puede volver al mapa esquemático de siempre. El radio y los datos siguen siendo los
+      mismos; solo cambia la capa visual.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">4:25 – 5:10</span><h3>Fotos</h3></div>
+    <div class="pantalla"><strong>Administración → estudiantes</strong> → miniatura de foto; ejecutar:</div>
+    <pre class="cmd"><code>powershell -ExecutionPolicy Bypass -File tests\verificar-fotos.ps1</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Segundo extra: las fotos salieron de la base de datos. Ahora van a backend/uploads/fotos/, PostgreSQL guarda
+      solo la URL, y las data URLs viejas se migran solas al arrancar. La validación compara bytes, no texto. Cinco de
+      cinco.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">5:10 – 6:00</span><h3>Stripe test</h3></div>
+    <div class="pantalla">Panel del pasajero con <strong>Pagar con Stripe</strong>; <code>backend\.env.example</code> con
+      <code>PAGOS_MODO=STRIPE</code> y <code>STRIPE_SECRET_KEY=sk_test_...</code>; ejecutar:</div>
+    <pre class="cmd"><code>powershell -ExecutionPolicy Bypass -File tests\verificar-stripe.ps1</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Tercer extra: pasarela Stripe en modo de prueba, con sk_test. Checkout es una página alojada de Stripe, la
+      confirmación consulta la sesión real por session_id, y el webhook firmado es opcional porque nuestro certificado
+      es local. Sin configurar nada, el proyecto sigue en modo simulado. Diez de diez.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">6:00 – 6:45</span><h3>Notificaciones push y correo</h3></div>
+    <div class="pantalla">Panel del pasajero con <strong>Activar push</strong> / <strong>Enviar aviso de prueba</strong>;
+      <code>.env.example</code> con VAPID y <code>NOTIFICACIONES_EMAIL_MODO=ARCHIVO</code>; ejecutar:</div>
+    <pre class="cmd"><code>powershell -ExecutionPolicy Bypass -File tests\verificar-notificaciones.ps1</code><button class="copy" type="button">Copiar</button></pre>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Último extra: Web Push con claves VAPID y correo en modo archivo, que escribe .eml en disco. Sin configuración,
+      las notificaciones internas de los RF siguen igual. Si un push falla, se limpia la suscripción y la operación
+      principal no se rompe. Diez de diez.”
+    </blockquote></div>
+  </div>
+
+  <div class="bloque">
+    <div class="bloque-head"><span class="tiempo">6:45 – 7:20</span><h3>Cierre</h3></div>
+    <div class="pantalla">Tarjeta final con los tres nombres y el repo.</div>
+    <div class="decir"><span class="etiqueta">Decir</span><blockquote>
+      “Resumen: John mostró los 24 RF de negocio, Johan la arquitectura, las cookies, el hash bcrypt y la base de datos,
+      y yo las evidencias. La entrega es rutabol-requerimientos; los extras están en rutabol-extras y son mejoras, no
+      requerimientos. Gracias.”
+    </blockquote></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  RUTABOL-SCZ · Guion de exposición · rama <strong>rutabol-requerimientos</strong> ·
+  acompañante: <a href="DIAPOSITIVAS.html">DIAPOSITIVAS.html</a> · funciona sin internet
+</footer>
+
+<script>
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }));
+
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const code = btn.parentElement.querySelector('code');
+      try {
+        await navigator.clipboard.writeText(code.innerText);
+      } catch (e) {
+        const range = document.createRange();
+        range.selectNodeContents(code);
+        const sel = window.getSelection();
+        sel.removeAllRanges(); sel.addRange(range);
+        document.execCommand('copy');
+        sel.removeAllRanges();
+      }
+      btn.textContent = 'Copiado ✓';
+      setTimeout(() => { btn.textContent = 'Copiar'; }, 1500);
+    });
+  });
+</script>
+</body>
+</html>

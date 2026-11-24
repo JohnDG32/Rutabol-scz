@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diapositivas · RUTABOL-SCZ · Actividad 01</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --paper:#ffffff; --bg:#0b1220;
+    --brand:#0f766e; --brand2:#14b8a6; --accent:#f59e0b; --line:#e2e8f0;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:Segoe UI,Inter,Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+  #deck{position:absolute;inset:0;display:grid;place-items:center}
+  .slide{display:none;width:min(1180px,94vw);height:min(720px,88vh);
+    background:var(--paper);border-radius:18px;padding:44px 56px;
+    box-shadow:0 24px 70px rgba(0,0,0,.45);overflow:auto;
+    animation:entrar .25s ease-out}
+  .slide.active{display:block}
+  @keyframes entrar{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .kicker{margin:0 0 8px;color:var(--brand);font-weight:800;font-size:.8rem;
+    letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:3rem;line-height:1.05;margin:6px 0 14px;letter-spacing:-.03em}
+  h2{font-size:2.15rem;line-height:1.15;margin:4px 0 18px;letter-spacing:-.02em}
+  h3{font-size:1.1rem;margin:0 0 6px}
+  p{font-size:1.12rem;color:#334155;margin:10px 0}
+  .lead{font-size:1.35rem;color:#0f172a}
+  .autores{margin-top:26px;color:var(--muted);font-size:1rem}
+  .rama{display:inline-block;background:#ccfbf1;color:#115e59;border-radius:999px;
+    padding:5px 14px;font-weight:700;font-size:.85rem;margin-bottom:12px}
+  .extra{background:#fef3c7;color:#92400e}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:18px}
+  .card{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#f8fafc}
+  .card strong{display:block;color:var(--brand);font-size:1.05rem;margin-bottom:4px}
+  .card span{font-size:.98rem;color:#475569}
+  .num{font-size:2.6rem;font-weight:800;color:var(--brand);line-height:1}
+  .big{font-size:2.6rem;font-weight:800;color:var(--brand);letter-spacing:-.03em}
+  .verde{color:#047857}.rojo{color:#b91c1c}.ambar{color:#b45309}
+  pre{background:#0b1220;color:#e2e8f0;border-radius:12px;padding:16px 18px;
+    font-family:Consolas,"Cascadia Mono",Menlo,monospace;font-size:.92rem;
+    overflow-x:auto;line-height:1.5;margin:14px 0}
+  code{font-family:inherit}
+  .pill{display:inline-block;border-radius:8px;background:#eef2ff;color:#3730a3;
+    padding:4px 10px;font-size:.85rem;font-weight:700;margin:3px}
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:22px 0}
+  .flow .node{background:#0f766e;color:#fff;border-radius:12px;padding:16px 20px;font-weight:700;min-width:150px;text-align:center}
+  .flow .node.alt{background:#1e293b}
+  .flow .arrow{font-size:1.5rem;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:1rem}
+  th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left}
+  th{color:var(--brand);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  blockquote{margin:14px 0;padding:14px 18px;border-left:5px solid var(--accent);
+    background:#fffbeb;border-radius:0 12px 12px 0;font-size:1.1rem}
+  .notes{display:none;margin-top:22px;border-top:1px dashed #cbd5e1;padding-top:12px;
+    font-size:.92rem;color:#475569;background:#f8fafc;border-radius:0 0 10px 10px;padding:12px 16px}
+  body.show-notes .notes{display:block}
+  .controls{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:20;
+    display:flex;align-items:center;gap:8px;background:rgba(15,23,42,.88);
+    border:1px solid #334155;border-radius:999px;padding:7px 10px;color:#e2e8f0}
+  .controls button{border:0;background:#334155;color:#fff;border-radius:999px;
+    width:36px;height:32px;cursor:pointer;font-size:1rem}
+  .controls button:hover{background:var(--brand)}
+  #counter{font-variant-numeric:tabular-nums;font-size:.85rem;min-width:64px;text-align:center}
+  #barwrap{position:fixed;top:0;left:0;right:0;height:5px;background:#1e293b;z-index:20}
+  #bar{height:100%;width:0;background:linear-gradient(90deg,var(--brand2),var(--accent));transition:width .2s}
+  .tip{position:fixed;right:14px;bottom:16px;color:#94a3b8;font-size:.75rem;z-index:20}
+  @media print{
+    body{background:#fff;overflow:visible}
+    #deck{position:static;display:block}
+    .slide{display:block!important;width:auto;height:auto;box-shadow:none;border-radius:0;
+      page-break-after:always;margin:0;padding:28px}
+    .controls,#barwrap,.tip{display:none}
+    .notes{display:block!important}
+  }
+</style>
+</head>
+<body>
+
+<div id="barwrap"><div id="bar"></div></div>
+
+<div id="deck">
+
+  <!-- 1 -->
+  <section class="slide active">
+    <p class="kicker">Actividad 01 · Proyecto avanzado Ruta-bol</p>
+    <h1>RUTABOL-SCZ</h1>
+    <p class="lead">RF/RNF · Cookies y sesión · Hash · Base de datos · Extras</p>
+    <p class="autores">John Diego Gutierrez Chamo · Johan Sebastian Moreno Roca · Carlos Eduardo Salvatierra Chavez</p>
+    <div class="autores"><span class="rama">Entrega: rutabol-requerimientos</span>
+      <span class="rama extra">Extras: rutabol-extras</span></div>
+    <aside class="notes">Notas: tarjeta de 3 segundos con los tres nombres. Habla John Diego.</aside>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <p class="kicker">El encargo</p>
+    <h2>Qué se pidió y qué se entregó</h2>
+    <blockquote>“Implementación del proyecto avanzado en clases Ruta-bol en base a los RNF y RF de la actividad 1.
+      Aplicación de Cookies y Session dentro del proyecto. Hash e implementation de base de datos. De paso, todo lo
+      extra que hicimos.”</blockquote>
+    <div class="grid">
+      <div class="card"><strong>RF y RNF</strong><span>24 funcionales y 18 no funcionales implementados.</span></div>
+      <div class="card"><strong>Sesión</strong><span>Cookie httpOnly en PostgreSQL, con hash bcrypt.</span></div>
+      <div class="card"><strong>Extras</strong><span>Mapa, fotos, Stripe y notificaciones, en rama aparte.</span></div>
+    </div>
+    <aside class="notes">Notas: no leer la cita completa si aprieta el tiempo; resumirla con las tres tarjetas.</aside>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <p class="kicker">Alcance</p>
+    <h2>Una primera fase ejecutable</h2>
+    <div class="grid">
+      <div class="card"><div class="num">24</div><strong>requerimientos funcionales</strong><span>Cubiertos y verificados por prueba integral.</span></div>
+      <div class="card"><div class="num">18</div><strong>requerimientos no funcionales</strong><span>Seguridad, rendimiento, integridad, auditoría y más.</span></div>
+      <div class="card"><div class="num">12</div><strong>módulos NestJS</strong><span>API REST bajo <code>/api</code>.</span></div>
+    </div>
+    <p>Stack: <span class="pill">Next.js 15</span><span class="pill">NestJS 11</span>
+      <span class="pill">PostgreSQL 17</span><span class="pill">Docker Compose</span></p>
+    <aside class="notes">Notas: John Diego. Enfatizar que no es un maqueta: hay API y base reales.</aside>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <p class="kicker">Arquitectura</p>
+    <h2>Así viaja una petición</h2>
+    <div class="flow">
+      <div class="node">Navegador<br>Next.js</div>
+      <div class="arrow">→</div>
+      <div class="node">Cookie<br>rutabol.sid</div>
+      <div class="arrow">→</div>
+      <div class="node">API NestJS<br>/api</div>
+      <div class="arrow">→</div>
+      <div class="node alt">PostgreSQL<br>volumen persistente</div>
+    </div>
+    <div class="grid">
+      <div class="card"><strong>RolesGuard</strong><span>Exige sesión y rol solo en los endpoints declarados.</span></div>
+      <div class="card"><strong>AuditoriaInterceptor</strong><span>Registra POST/PATCH/DELETE con actor y datos saneados.</span></div>
+    </div>
+    <aside class="notes">Notas: Johan. Mencionar que Caddy sirve web y API en el mismo dominio HTTPS.</aside>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <p class="kicker">Actores</p>
+    <h2>Cuatro roles, un mismo sistema</h2>
+    <table>
+      <tr><th>Rol</th><th>Qué hace</th></tr>
+      <tr><td>ADMIN</td><td>CRUD de líneas, micros, conductores, tarifas, estudiantes, reportes.</td></tr>
+      <tr><td>CONDUCTOR</td><td>Inicia/finaliza viaje, abordajes, bajas, trasbordos, emergencias, GPS.</td></tr>
+      <tr><td>PASAJERO</td><td>Consulta tarifas y micros, crea y confirma pagos, historial.</td></tr>
+      <tr><td>ESTUDIANTE</td><td>Lo anterior + tarifa diferenciada previa verificación.</td></tr>
+    </table>
+    <p class="nota" style="font-size:.95rem;color:#64748b">Demo: admin (clave del .env), conductor1, pasajero1 y estudiante1 con RutabolDemo123.</p>
+    <aside class="notes">Notas: John Diego. No mostrar la clave del admin en pantalla.</aside>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <p class="kicker">RF-01 a RF-08</p>
+    <h2>Registro, tarifas y control inicial</h2>
+    <div class="grid">
+      <div class="card"><strong>RF-01 / RF-03</strong><span>Micros por línea e interno; conductores asignados.</span></div>
+      <div class="card"><strong>RF-02 / RN-01</strong><span>Un viaje solo arranca si el micro está autorizado.</span></div>
+      <div class="card"><strong>RF-04 / RF-05</strong><span>Tarifa autorizada y consulta pública filtrable.</span></div>
+      <div class="card"><strong>RF-06 / RF-07</strong><span>Historial de posiciones y micros en 5 km con Haversine.</span></div>
+      <div class="card"><strong>RF-08</strong><span>Abordajes y bajas por viaje.</span></div>
+    </div>
+    <aside class="notes">Notas: John Diego. Mostrar la pantalla de consultas y micros cercanos.</aside>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <p class="kicker">RF-09 a RF-16</p>
+    <h2>Capacidad, estudiantes y trasbordos</h2>
+    <div class="grid">
+      <div class="card"><strong>RF-09 / RF-10</strong><span>Capacidad 18–25, alerta y bloqueo al llenarse.</span></div>
+      <div class="card"><strong>RF-11 / RF-12</strong><span>Trasbordo entre micros de una línea sin cobrar dos veces.</span></div>
+      <div class="card"><strong>RF-13 / RF-14</strong><span>Escolar con RUDE y universitario con correo @upds.edu.bo, ambos con foto.</span></div>
+      <div class="card"><strong>RF-15 / RF-16</strong><span>Clasificación por categoría y verificación de identidad.</span></div>
+    </div>
+    <aside class="notes">Notas: John Diego.RF-12 se apoya en trasbordos.pago_reutilizado.</aside>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <p class="kicker">RF-17 a RF-24</p>
+    <h2>Pagos, emergencias y reportes</h2>
+    <div class="grid">
+      <div class="card"><strong>RF-17 / RF-18</strong><span>Pago con token simulado, monto calculado y confirmación transaccional.</span></div>
+      <div class="card"><strong>RF-19 / RF-20</strong><span>Trasbordo de emergencia y notificaciones a pasajeros y admin.</span></div>
+      <div class="card"><strong>RF-21 / RF-23</strong><span>Historial agregado y reportes estadísticos con CSV.</span></div>
+      <div class="card"><strong>RF-22 / RF-24</strong><span>Panel administrativo y estados de disponibilidad del micro.</span></div>
+    </div>
+    <aside class="notes">Notas: John Diego. Cerrar con "continúa Johan".</aside>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <p class="kicker">RNF-01 / RNF-02 · Johan</p>
+    <h2>Cookies y sesión</h2>
+    <pre><code>Set-Cookie: rutabol.sid=...; HttpOnly; Secure; SameSite=Lax</code></pre>
+    <div class="grid">
+      <div class="card"><strong>HttpOnly</strong><span>JavaScript no puede leer la cookie.</span></div>
+      <div class="card"><strong>Secure</strong><span>Solo viaja por HTTPS.</span></div>
+      <div class="card"><strong>SameSite=Lax</strong><span>Reduce el envío cross-site.</span></div>
+      <div class="card"><strong>En PostgreSQL</strong><span>connect-pg-simple guarda la sesión; no es localStorage.</span></div>
+    </div>
+    <aside class="notes">Notas: Johan. Mostrar el curl con -i y señalar la línea Set-Cookie. /auth/me valida, /auth/logout destruye.</aside>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <p class="kicker">RNF-01 / RNF-15 · Johan</p>
+    <h2>Hash, nunca contraseñas</h2>
+    <pre><code>username   | prefijo | longitud
+-----------+---------+---------
+conductor1 | $2b$12$ | 60
+pasajero1  | $2b$12$ | 60</code></pre>
+    <p>bcrypt con factor de costo 12. En el login se compara, nunca se desencripta.</p>
+    <p>La auditoría sanea contraseñas, tokens y fotos; en pagos solo viaja un token simulado.</p>
+    <aside class="notes">Notas: Johan. Mostrar la consulta SQL con left(password_hash,7) y length(password_hash).</aside>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <p class="kicker">RNF-09 · Johan</p>
+    <h2>Base de datos con integridad real</h2>
+    <div class="grid">
+      <div class="card"><strong>14 tablas + sesiones</strong><span>Definidas en 01_init.sql y 02_migracion_rutabol.sql.</span></div>
+      <div class="card"><strong>UNIQUE</strong><span>Placa, interno, referencia de pago, código de estudiante.</span></div>
+      <div class="card"><strong>CHECK</strong><span>Capacidad 18–25, lat/lng válidos, estados permitidos.</span></div>
+      <div class="card"><strong>FK e índices</strong><span>Entre viajes, pagos, abordajes y trasbordos; índices parciales.</span></div>
+    </div>
+    <p>Las validaciones están en la BD, no solo en el frontend.</p>
+    <aside class="notes">Notas: Johan. Mostrar \dt, \d micros y \d pagos.</aside>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <p class="kicker">RNF destacados · Johan</p>
+    <h2>Lo que el sistema garantiza</h2>
+    <table>
+      <tr><th>RNF</th><th>Evidencia</th></tr>
+      <tr><td>03 Rendimiento</td><td>400 peticiones, 0 errores, promedio 87 ms, p95 124 ms.</td></tr>
+      <tr><td>05 Precisión GPS</td><td>Origen por posición: SIMULADO / MANUAL / GPS_NAVEGADOR.</td></tr>
+      <tr><td>11 Recuperación</td><td>pg_dump + restore: 14/14 tablas con conteos idénticos.</td></tr>
+      <tr><td>13 Auditoría</td><td>Interceptor global con actor y detalles saneados.</td></tr>
+      <tr><td>16 Actualización</td><td>Socket.IO + polling de 60 s como respaldo.</td></tr>
+    </table>
+    <aside class="notes">Notas: Johan. Cerrar con "continúa Carlos".</aside>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <p class="kicker">Verificación · Carlos</p>
+    <h2>Pruebas que se pueden repetir</h2>
+    <div class="grid">
+      <div class="card"><div class="big verde">45/45</div><strong>verificar-flujo.ps1</strong><span>Limpia al inicio y al final: login por rol, capacidad, pago, trasbordo, emergencia, reportes.</span></div>
+      <div class="card"><div class="big verde">3/3</div><strong>verificar-gps-real.ps1</strong><span>Origen GPS_NAVEGADOR y default SIMULADO.</span></div>
+      <div class="card"><div class="big verde">4/4</div><strong>verificar-websocket.ps1</strong><span>Transporte websocket sobre HTTPS.</span></div>
+    </div>
+    <pre><code>powershell -ExecutionPolicy Bypass -File tests\verificar-flujo.ps1</code></pre>
+    <aside class="notes">Notas: Carlos. Mostrar la salida real; si se acelera el video, avisar que es un time-lapse.</aside>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide">
+    <p class="kicker">Verificación · Carlos</p>
+    <h2>Carga y recuperación</h2>
+    <div class="grid">
+      <div class="card"><div class="big">400</div><strong>peticiones</strong><span>20 usuarios × 5 iteraciones × 4 endpoints. 0 errores.</span></div>
+      <div class="card"><div class="big">87 ms</div><strong>promedio</strong><span>p95 de 124 ms. Límite del RNF: 3 s.</span></div>
+      <div class="card"><div class="big">14/14</div><strong>tablas restauradas</strong><span>Conteos idénticos tras pg_dump + restore.</span></div>
+    </div>
+    <aside class="notes">Notas: Carlos. scripts: tests/prueba-carga.ps1 y tests/verificar-restore.ps1.</aside>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide">
+    <p class="kicker">Reproducibilidad · Carlos</p>
+    <h2>Un tercero puede levantarlo</h2>
+    <pre><code>git clone -b rutabol-requerimientos https://github.com/JohnDG32/Rutabol-scz.git
+MANUAL.md → .env → mkcert → docker compose up -d
+https://www.rutabol.test  (candadito incluido)</code></pre>
+    <p>El manual explica cada paso desde cero, sin suponer conocimiento previo.</p>
+    <aside class="notes">Notas: Carlos. Esta es la entrega formal de la Actividad 01.</aside>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <p class="kicker extra">Corte · rama rutabol-extras</p>
+    <h2>A partir de acá: extras, no Actividad 01</h2>
+    <blockquote>Mejoras opcionales sobre la misma base. El modo simulado y las 45 pruebas siguen intactos.</blockquote>
+    <div class="grid">
+      <div class="card"><strong>Mapa real</strong><span>Leaflet + OpenStreetMap.</span></div>
+      <div class="card"><strong>Fotos en disco</strong><span>PostgreSQL guarda solo la URL.</span></div>
+      <div class="card"><strong>Stripe test</strong><span>Con sk_test, sin datos de tarjeta.</span></div>
+      <div class="card"><strong>Push y correo</strong><span>VAPID y .eml en disco.</span></div>
+    </div>
+    <aside class="notes">Notas: Carlos. Cambiar de tarjeta/rama antes de seguir. Repetir que no son requerimientos.</aside>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide">
+    <p class="kicker extra">Extra 1 · Mapa</p>
+    <h2>Mapa callejero real, con respaldo</h2>
+    <div class="grid">
+      <div class="card"><strong>Leaflet + OpenStreetMap</strong><span>Círculo de 5 km, marcador por micro y distancia.</span></div>
+      <div class="card"><strong>Sin internet</strong><span>Aviso automático y vuelta al mapa esquemático de siempre.</span></div>
+      <div class="card"><strong>Mismos datos</strong><span>Solo cambia la capa visual; el radio y las posiciones no.</span></div>
+    </div>
+    <aside class="notes">Notas: Carlos. Mostrar el conmutador entre mapa real y esquemático.</aside>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide">
+    <p class="kicker extra">Extra 2 · Fotos</p>
+    <h2>Fotos fuera de la base de datos</h2>
+    <pre><code>backend/uploads/fotos/   → archivo
+pagos/estudiantes.foto_url → solo la URL en PostgreSQL</code></pre>
+    <div class="grid">
+      <div class="card"><strong>Migración automática</strong><span>Data URLs viejas se convierten al arrancar.</span></div>
+      <div class="card"><strong>Validación por bytes</strong><span>Comparación real, no solo de texto.</span></div>
+      <div class="card"><strong>5/5 PASS</strong><span>verificar-fotos.ps1</span></div>
+    </div>
+    <aside class="notes">Notas: Carlos. Mostrar la miniatura en Administración → estudiantes.</aside>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide">
+    <p class="kicker extra">Extra 3 · Pagos</p>
+    <h2>Stripe en modo de prueba</h2>
+    <pre><code>PAGOS_MODO=STRIPE
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_MONEDA=usd</code></pre>
+    <div class="grid">
+      <div class="card"><strong>Checkout alojado</strong><span>El navegador va a Stripe; no guardamos tarjetas.</span></div>
+      <div class="card"><strong>Confirmación real</strong><span>Consulta la sesión por session_id.</span></div>
+      <div class="card"><strong>Default intacto</strong><span>Sin variables, sigue el pasarela simulada. 10/10 PASS.</span></div>
+    </div>
+    <aside class="notes">Notas: Carlos. Nunca mostrar una clave real; solo sk_test de ejemplo.</aside>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide">
+    <p class="kicker extra">Extra 4 · Avisos</p>
+    <h2>Push y correo, sin romper nada</h2>
+    <div class="grid">
+      <div class="card"><strong>Web Push</strong><span>Claves VAPID y suscripción guardada en suscripciones_push.</span></div>
+      <div class="card"><strong>Correo ARCHIVO</strong><span>Archivos .eml en backend/uploads/correos; SMTP es opcional.</span></div>
+      <div class="card"><strong>Best-effort</strong><span>Si el push falla, se limpia la suscripción y la operación sigue.</span></div>
+      <div class="card"><strong>10/10 PASS</strong><span>verificar-notificaciones.ps1 en API aislada.</span></div>
+    </div>
+    <aside class="notes">Notas: Carlos. Sin configurar VAPID, las notificaciones internas de los RF quedan igual.</aside>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide">
+    <p class="kicker">Resumen</p>
+    <h2>Quién mostró qué</h2>
+    <div class="grid">
+      <div class="card"><strong>John Diego</strong><span>24 RF de negocio: admin, pasajero, conductor, estudiante, pagos, trasbordos, emergencias y reportes.</span></div>
+      <div class="card"><strong>Johan</strong><span>Arquitectura, cookie y sesión, hash bcrypt, base de datos y RNF medidos.</span></div>
+      <div class="card"><strong>Carlos</strong><span>Evidencias (45/45, carga, restore) y los cuatro extras en rama aparte.</span></div>
+    </div>
+    <aside class="notes">Notas: si grabaron por partes, esta slide sirve de empalme final con los tres en cámara.</aside>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide">
+    <p class="kicker">Cierre</p>
+    <h1>Entrega:<br>rutabol-requerimientos</h1>
+    <p class="lead">Los extras viven en <code>rutabol-extras</code> y son mejoras, no requerimientos.</p>
+    <p class="autores">Gracias · John Diego · Johan · Carlos</p>
+    <aside class="notes">Notas: despedida y preguntas.</aside>
+  </section>
+
+</div>
+
+<div class="controls">
+  <button type="button" id="prev" title="Anterior (←)">‹</button>
+  <span id="counter">01 / 22</span>
+  <button type="button" id="next" title="Siguiente (→)">›</button>
+  <button type="button" id="notes" title="Notas del expositor (N)">N</button>
+  <button type="button" id="full" title="Pantalla completa (F)">⛶</button>
+</div>
+<div class="tip">← → espacio · N notas · F pantalla completa · Imprimir = PDF</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const counter = document.getElementById('counter');
+  const bar = document.getElementById('bar');
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    counter.textContent = String(i + 1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
+    bar.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+
+  document.getElementById('prev').addEventListener('click', () => show(i - 1));
+  document.getElementById('next').addEventListener('click', () => show(i + 1));
+  document.getElementById('notes').addEventListener('click', () => document.body.classList.toggle('show-notes'));
+  document.getElementById('full').addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(i + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+    else if (e.key.toLowerCase() === 'n') { document.body.classList.toggle('show-notes'); }
+    else if (e.key.toLowerCase() === 'f') { document.getElementById('full').click(); }
+  });
+
+  show(0);
+</script>
+</body>
+</html>
