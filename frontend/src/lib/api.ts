@@ -1,5 +1,5 @@
 import type {
-  Abordaje, Categoria, Conductor, ConductorInput, Estudiante, FiltrosReporte, Historial, Linea,
+  Abordaje, Categoria, ConfigNotificaciones, Conductor, ConductorInput, Estudiante, FiltrosReporte, Historial, Linea,
   Micro, MicroCercano, MicroInput, Notificacion, Pago, ResumenReporte,
   ResultadoTrasbordo, Tarifa, Usuario, Viaje,
 } from './types';
@@ -116,6 +116,12 @@ export const api = {
   // Notificaciones y reportes
   notificaciones: () => request<Notificacion[]>('/notificaciones'),
   marcarLeida: (id: number) => request<Notificacion>(`/notificaciones/${id}/leida`, { method: 'PATCH' }),
+  configNotificaciones: () => request<ConfigNotificaciones>('/notificaciones/config'),
+  suscribirPush: (endpoint: string, p256dh: string, auth: string) =>
+    request<{ guardada: boolean }>('/notificaciones/suscribir', json('POST', { endpoint, p256dh, auth })),
+  desuscribirPush: (endpoint: string) =>
+    request<{ borrada: boolean }>('/notificaciones/desuscribir', json('POST', { endpoint })),
+  notificacionPrueba: () => request<Notificacion>('/notificaciones/prueba', { method: 'POST' }),
   resumen: (filtros: FiltrosReporte = {}) => {
     const params = new URLSearchParams();
     if (filtros.desde) params.set('desde', filtros.desde);

@@ -379,6 +379,52 @@ powershell -ExecutionPolicy Bypass -File tests\verificar-stripe.ps1
 
 Arranca una API temporal en el puerto 3011 con una clave `sk_test_` inválida, verifica que el paso por Checkout se intente y que el error vuelva como `400`, y deja la API principal en modo simulado. Debe terminar con `TOTAL: 10  PASS: 10  FAIL: 0`.
 
+### 9.6 Notificaciones push y correo (opcional)
+
+Si no hacés nada, las notificaciones siguen apareciendo solo en el panel, como en la Actividad 01. Este extra es opcional. Tenés dos formas de probarlo, de la más simple a la más completa:
+
+**A) Correo sin credenciales (modo ARCHIVO)**
+
+1. Abrí `backend\.env` y agregá:
+
+   ```dotenv
+   NOTIFICACIONES_EMAIL_MODO=ARCHIVO
+   NOTIFICACIONES_EMAIL_DESTINO=demo@rutabol.test
+   ```
+
+2. Reiniciá la API. Ingresá como `pasajero1` y en **Pasajero** presioná **Enviar aviso de prueba** (aparece aunque no configuremos push).
+3. Revisá la carpeta `backend\uploads\correos`: ahí se crea un archivo `.eml` con el aviso. Es un correo de demostración, no se envía a ningún servidor.
+
+**B) Push al navegador (requiere claves VAPID)**
+
+1. En la carpeta `backend`, generá un par de claves con:
+
+   ```powershell
+   npx web-push generate-vapid-keys
+   ```
+
+2. Copiá los valores en `backend\.env`:
+
+   ```dotenv
+   VAPID_PUBLIC_KEY=la_clave_publica_que_copiaste
+   VAPID_PRIVATE_KEY=la_clave_privada_que_copiaste
+   VAPID_SUBJECT=mailto:demo@rutabol.test
+   ```
+
+3. Reiniciá la API. Ingresá como `pasajero1` y andá a **Pasajero**. Ahora verás el botón **Activar push**: presionalo y aceptá el permiso del navegador.
+4. Presioná **Enviar aviso de prueba**. Debe aparecer una notificación del sistema operativo con el texto *RUTABOL-SCZ · PRUEBA*. Si el navegador está cerrado, el aviso queda guardado en el panel igualmente.
+5. Si querés dejar de recibir avisos en ese navegador, presioná **Desactivar push**.
+
+Notas: el push necesita HTTPS (lo tenemos con `www.rutabol.test`) y sirve para avisos reales como emergencias o capacidad, no solo para la prueba. Si un dispositivo ya no existe, la API limpia su suscripción automáticamente y el resto sigue funcionando. No hace falta configurar SMTP: el modo `ARCHIVO` ya permite ver el correo generado.
+
+Para verificar el cableado sin permisos del navegador:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\verificar-notificaciones.ps1
+```
+
+Arranca una API temporal en el puerto 3012 con claves VAPID de prueba y correo en modo ARCHIVO, y comprueba suscripción, aviso de prueba y archivo `.eml`, sin tocar la API principal. Debe terminar con `TOTAL: 10  PASS: 10  FAIL: 0`.
+
 ---
 
 ## 10. Prueba completa (45 comprobaciones)
@@ -406,6 +452,7 @@ powershell -ExecutionPolicy Bypass -File tests\prueba-carga.ps1
 powershell -ExecutionPolicy Bypass -File tests\verificar-restore.ps1
 powershell -ExecutionPolicy Bypass -File tests\verificar-gps-real.ps1
 powershell -ExecutionPolicy Bypass -File tests\verificar-websocket.ps1
+powershell -ExecutionPolicy Bypass -File tests\verificar-notificaciones.ps1
 ```
 
 El primero simula 20 usuarios al mismo tiempo y mide cuánto tarda cada respuesta. Debe terminar con `PASS - p95 <= 3000 ms y sin errores`. En esta máquina dio 400 peticiones, 0 errores, promedio 87 ms y p95 124 ms.

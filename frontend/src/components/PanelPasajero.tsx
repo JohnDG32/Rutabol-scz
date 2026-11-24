@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '@/lib/api';
+import { activarPush, desactivarPush, endpointPushActual } from '@/lib/push';
 import { obtenerSocket } from '@/lib/socket';
-import type { Categoria, Historial, Notificacion, Pago, Viaje } from '@/lib/types';
+import type { Categoria, ConfigNotificaciones, Historial, Notificacion, Pago, Viaje } from '@/lib/types';
 
 interface Props {
   viajes: Viaje[];
@@ -23,6 +24,9 @@ export function PanelPasajero({ viajes, avisar }: Props) {
   const [procesando, setProcesando] = useState(false);
   const [modoPago, setModoPago] = useState<'SIMULADO' | 'STRIPE'>('SIMULADO');
   const [monedaPago, setMonedaPago] = useState('usd');
+  const [configNotif, setConfigNotif] = useState<ConfigNotificaciones | null>(null);
+  const [endpointPush, setEndpointPush] = useState('');
+  const [procesandoPush, setProcesandoPush] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -49,6 +53,14 @@ export function PanelPasajero({ viajes, avisar }: Props) {
       socket.off('cambios', cargar);
     };
   }, [cargar]);
+
+  // Extra: consultamos si el servidor tiene push habilitado y si este navegador ya está suscrito.
+  useEffect(() => {
+    api.configNotificaciones().then((config) => {
+      setConfigNotif(config);
+      if (config.push) void endpointPushActual().then(setEndpointPush).catch(() => undefined);
+    }).catch(() => undefined);
+  }, []);
 
   // Retorno de Stripe Checkout: el id de sesión viene en la URL y el pago en sessionStorage.
   useEffect(() => {
@@ -101,6 +113,26 @@ export function PanelPasajero({ viajes, avisar }: Props) {
       avisar(e instanceof Error ? e.message : 'No se pudo crear el pago');
     } finally {
       setProcesando(false);
+    }
+  }
+
+  async function alternarPush() {
+    if (!configNotif?.clavePublica) return;
+    setProcesandoPush(true);
+    try {
+      if (endpointPush) {
+        await desactivarPush(endpointPush);
+        setEndpointPush('');
+        avisar('Notificaciones push desactivadas en este navegador.');
+      } else {
+        const endpoint = await activarPush(configNotif.clavePublica);
+        setEndpointPush(endpoint);
+        avisar('Notificaciones push activadas en este navegador.');
+      }
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'No se pudo configurar el push');
+    } finally {
+      setProcesandoPush(false);
     }
   }
 
@@ -182,6 +214,25 @@ export function PanelPasajero({ viajes, avisar }: Props) {
       </div>
 
       <h3 className="subtitulo">Notificaciones</h3>
+      {configNotif && (
+        <div className="tarjetaForm avisoPush">
+          <h4>Avisos en este dispositivo</h4>
+          <p className="muted">
+            Push: {configNotif.push ? 'disponible' : 'sin configurar'} · Correo: {configNotif.correo.toLowerCase()}
+          </p>
+          {configNotif.push && (
+            <div className="fila">
+              <button className="boton secundario" disabled={procesandoPush} onClick={() => void alternarPush()}>
+                {endpointPush ? 'Desactivar push' : 'Activar push'}
+              </button>
+              <button className="boton secundario" disabled={procesandoPush} onClick={() => void ejecutar(() => api.notificacionPrueba(), 'Aviso de prueba enviado.')}>
+                Enviar aviso de prueba
+              </button>
+            </div>
+          )}
+          {!configNotif.push && <p className="muted">Configure VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY en la API para habilitarlo (extra).</p>}
+        </div>
+      )}
       <div className="panelLista">
         {notificaciones.map((aviso) => (
           <div className="fila" key={aviso.id}>

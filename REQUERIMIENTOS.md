@@ -171,6 +171,7 @@ Entorno: Docker Desktop con PostgreSQL, Caddy + mkcert, API en `:3001` y web en 
 | WebSocket en tiempo real | `tests/verificar-websocket.ps1` | **4/4 PASS**, `transport=websocket` por HTTPS |
 | Fotografías fuera de la BD | `tests/verificar-fotos.ps1` | **5/5 PASS** (URL de archivo, archivo en disco, HTTPS, validación por bytes, 0 data URLs) |
 | Pasarela Stripe (extra) | `tests/verificar-stripe.ps1` | **10/10 PASS** (modo simulado intacto, esquema, API aislada, checkout con clave inválida, pago pendiente) |
+| Notificaciones externas (extra) | `tests/verificar-notificaciones.ps1` | **10/10 PASS** (config por defecto intacta, esquema, API aislada, suscripción, aviso de prueba y correo `.eml`) |
 | Carga | `tests/prueba-carga.ps1` | 400 peticiones, **0 errores**, promedio 87 ms, p95 124 ms |
 | Copia de seguridad | `tests/verificar-restore.ps1` | `pg_dump` + restore en base vacía: **14/14 tablas con conteos idénticos** |
 | HTTPS y sesión | `curl.exe --ssl-no-revoke -i https://www.rutabol.test/api/auth/login` | Web 200, `Set-Cookie: rutabol.sid=...; HttpOnly; Secure; SameSite=Lax` |
@@ -192,3 +193,4 @@ Estas mejoras **no son requerimientos de la Actividad 01**; se agregaron para ac
 - **Mapa callejero real con Leaflet + OpenStreetMap** en *Micros cercanos*, mostrando el radio de 5 km, un marcador por micro y su distancia. Si no hay internet, se avisa y se puede usar el mapa esquemático anterior (también seleccionable manualmente).
 - **Fotografías de estudiantes en disco**, con migración automática de data URLs, validación por bytes y miniaturas en el panel administrativo. PostgreSQL solo conserva la URL del archivo.
 - **Pasarela Stripe en modo de prueba**, activable con `PAGOS_MODO=STRIPE` y una clave `sk_test_`. El modo simulado sigue siendo el predeterminado; Checkout usa una URL alojada, la confirmación consulta la sesión real y el webhook firmado es opcional. No se guardan datos de tarjeta.
+- **Notificaciones externas opcionales**: Web Push al navegador con claves VAPID y correo en modo `ARCHIVO` (archivos `.eml` en disco) o `SMTP`. Sin configuración, las notificaciones internas de los RF siguen funcionando exactamente igual; el envío externo es best-effort y nunca bloquea la operación principal.

@@ -217,6 +217,38 @@ Verificación del cableado (usa una clave `sk_test_` inválida en una API aislad
 powershell -ExecutionPolicy Bypass -File tests/verificar-stripe.ps1
 ```
 
+## Extra: notificaciones externas (push y correo)
+
+Los avisos internos del panel siguen funcionando igual sin configuración. Este extra permite además enviarlos al navegador (Web Push) y por correo, de forma **opcional** y sin credenciales reales.
+
+```dotenv
+# Generá las claves con: npx web-push generate-vapid-keys (dentro de backend)
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:demo@rutabol.test
+# Modo de correo: DESACTIVADO (default), ARCHIVO o SMTP
+NOTIFICACIONES_EMAIL_MODO=ARCHIVO
+NOTIFICACIONES_EMAIL_DESTINO=demo@rutabol.test
+# Solo para SMTP:
+# SMTP_HOST=...
+# SMTP_PORT=587
+# SMTP_SECURE=false
+# SMTP_USER=...
+# SMTP_PASSWORD=...
+```
+
+- Sin claves VAPID, `GET /api/notificaciones/config` devuelve `{ "push": false, "correo": "DESACTIVADO" }` y el panel no muestra los botones de push. La demo queda idéntica a la versión base.
+- Con VAPID configurado, las rutas `POST /api/notificaciones/suscribir` y `/desuscribir` guardan o borran la suscripción del navegador en la tabla `suscripciones_push`.
+- `POST /api/notificaciones/prueba` crea un aviso real (tipo `PRUEBA`) y dispara el envío externo; sirve para probar sin provocar una emergencia.
+- El envío es **best-effort**: si un push falla (endpoint caído), se registra un aviso en el log y se limpia la suscripción inválida, pero el aviso interno y la operación principal nunca se rompen.
+- `ARCHIVO` escribe los correos como `.eml` en `backend/uploads/correos/` (ignorado por Git). `SMTP` usa el servidor configurado. Para bases existentes se aplica `database/04_migracion_notificaciones.sql`; en las nuevas ya viene en `01_init.sql`.
+
+Verificación (usa claves VAPID de prueba en una API aislada, sin tocar la instancia principal):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests/verificar-notificaciones.ps1
+```
+
 ## Copias de seguridad
 
 ```powershell
@@ -264,6 +296,7 @@ powershell -ExecutionPolicy Bypass -File tests/verificar-gps-real.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-websocket.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-fotos.ps1
 powershell -ExecutionPolicy Bypass -File tests/verificar-stripe.ps1
+powershell -ExecutionPolicy Bypass -File tests/verificar-notificaciones.ps1
 ```
 
 `prueba-carga.ps1` lanza 20 usuarios concurrentes × 5 iteraciones × 4 endpoints públicos (400 peticiones) y exige 0 errores y p95 ≤ 3000 ms. Resultado obtenido: **0 errores, promedio 87 ms, p95 124 ms, máximo 1014 ms**. Acepta `-Usuarios`, `-Iteraciones` y `-BaseUrl` como parámetros.

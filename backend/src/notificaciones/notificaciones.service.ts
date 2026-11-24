@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
+import { NotificacionesExternasService } from './notificaciones-externas.service';
 import { DestinoNotificacion, Notificacion } from './notificacion.interface';
 import type { Rol } from '../common/roles';
 
@@ -8,7 +9,10 @@ const COLUMNAS = `id, destino, tipo, mensaje, usuario_id AS "usuarioId", leida,
 
 @Injectable()
 export class NotificacionesService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly externas: NotificacionesExternasService,
+  ) {}
 
   async crear(
     destino: DestinoNotificacion,
@@ -21,6 +25,8 @@ export class NotificacionesService {
        VALUES ($1, $2, $3, $4) RETURNING ${COLUMNAS}`,
       [destino, tipo, mensaje, usuarioId ?? null]
     );
+    // Extra: push y correo son best-effort; un fallo externo no afecta al RF-20.
+    void this.externas.enviar(rows[0]).catch(() => undefined);
     return rows[0];
   }
 

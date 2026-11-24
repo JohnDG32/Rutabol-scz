@@ -139,6 +139,12 @@ export interface Notificacion {
   creadoEn: string;
 }
 
+export interface ConfigNotificaciones {
+  push: boolean;
+  correo: 'DESACTIVADO' | 'ARCHIVO' | 'SMTP';
+  clavePublica: string | null;
+}
+
 export interface FiltrosReporte {
   desde?: string;
   hasta?: string;
