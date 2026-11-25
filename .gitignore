@@ -3,11 +3,14 @@
 **/dist/
 **/*.tsbuildinfo
 **/.env
-**/.env.local
-**/.env.*.local
+**/.env.*
 !**/.env.example
 !**/.env.local.example
 .DS_Store
 *.log
 certs/
 backend/uploads/
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
