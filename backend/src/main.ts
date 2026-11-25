@@ -18,7 +18,8 @@ async function bootstrap() {
   const database = app.get(DatabaseService);
   await database.query('SELECT 1');
 
-  // Detrás de Caddy, Express debe confiar en X-Forwarded-Proto para marcar la cookie como Secure.
+  // Con Caddy o con un túnel HTTPS, Express debe confiar en X-Forwarded-Proto
+  // para reconocer la petición como segura y emitir la cookie con Secure.
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   // Extra: fotografías de estudiantes servidas desde disco, no desde la BD.
@@ -32,6 +33,15 @@ async function bootstrap() {
   });
 
   const PgStore = connectPgSimple(session);
+  const sameSite = (process.env.COOKIE_SAMESITE ?? 'lax') as 'lax' | 'strict' | 'none';
+  const secureRaw = process.env.COOKIE_SECURE;
+  const secure: boolean | 'auto' =
+    secureRaw === undefined || secureRaw === '' ? 'auto' : secureRaw === 'true';
+
+  if (sameSite === 'none' && secure !== true) {
+    throw new Error('COOKIE_SAMESITE=none requiere COOKIE_SECURE=true');
+  }
+
   app.use(session({
     name: 'rutabol.sid',
     secret,
@@ -41,8 +51,8 @@ async function bootstrap() {
     pool: database.getPool(),
     createTableIfMissing: true
     }),
-    // 'auto' => Secure cuando entra por HTTPS (Caddy) y normal cuando se accede por HTTP directo.
-    cookie: { httpOnly: true, sameSite: 'lax', secure: 'auto', maxAge: 60 * 60 * 1000 },
+    // 'auto' conserva el comportamiento local con Caddy; en Ruta B se fuerza Secure.
+    cookie: { httpOnly: true, sameSite, secure, maxAge: 60 * 60 * 1000 },
   }));
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));

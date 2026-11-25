@@ -43,9 +43,11 @@ por una configuración leída del entorno:
 
 ```ts
 const sameSite = (process.env.COOKIE_SAMESITE ?? 'lax') as 'lax' | 'strict' | 'none';
-const secure = process.env.COOKIE_SECURE === 'true';
+const secureRaw = process.env.COOKIE_SECURE;
+const secure: boolean | 'auto' =
+  secureRaw === undefined || secureRaw === '' ? 'auto' : secureRaw === 'true';
 
-if (sameSite === 'none' && !secure) {
+if (sameSite === 'none' && secure !== true) {
   throw new Error('COOKIE_SAMESITE=none requiere COOKIE_SECURE=true');
 }
 
@@ -61,6 +63,8 @@ app.use(session({
   cookie: { httpOnly: true, sameSite, secure, maxAge: 60 * 60 * 1000 },
 }));
 ```
+
+El valor `'auto'` se conserva cuando `COOKIE_SECURE` no está definido o está vacío, para no romper el HTTPS local con Caddy. En Ruta B se define explícitamente `COOKIE_SECURE=true`.
 
 Para Ruta B, `backend/.env` debe tener:
 
