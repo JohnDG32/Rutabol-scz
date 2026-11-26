@@ -85,29 +85,15 @@ No hace falta instalar nada más: no se usa Caddy para el túnel, no se instala 
 
 ---
 
-## 2. Estado real comprobado
+## 2. Estado final comprobado (26 de noviembre de 2026)
 
-Inspeccioné el JavaScript publicado de `https://rutabol-scz-8ih4.vercel.app/` y hoy contiene:
+- **Túnel activo:** `https://floors-narrative-themes-paintings.trycloudflare.com`
+- **API por túnel:** `GET /api/lineas` → HTTP 200.
+- **Bundle de Vercel:** contiene `https://floors-narrative-themes-paintings.trycloudflare.com/api`. Ya no usa el valor por defecto para las peticiones.
+- **CORS:** preflight con `Origin: https://rutabol-scz-8ih4.vercel.app` devuelve `Access-Control-Allow-Origin: https://rutabol-scz-8ih4.vercel.app` y `Allow-Credentials: true`.
+- **Backend:** `FRONTEND_ORIGIN=https://rutabol-scz-8ih4.vercel.app`, `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true`.
 
-```text
-https://www.rutabol.test/api
-```
-
-Eso es el **valor por defecto** de `frontend/src/lib/api.ts`. Significa que `NEXT_PUBLIC_API_URL` todavía no está aplicada al deployment. Por eso aparece error de CORS o de conexión.
-
-Además, en `backend\.env` hoy aparecen estas claves:
-
-```text
-ADMIN_PASSWORD
-ADMIN_USERNAME
-DATABASE_URL
-FRONTEND_ORIGIN
-PORT
-RUTABOL_DEMO_PASSWORD
-SESSION_SECRET
-```
-
-**Faltan** `COOKIE_SAMESITE` y `COOKIE_SECURE`. El código ya las soporta, pero hay que agregarlas.
+**Nota sobre la caché:** tras guardar la variable, el primer Redeploy puede conservar el bundle anterior (mismo hash de archivo). Se resolvió con un cambio inocuo en `frontend/src/lib/api.ts` y un push nuevo, que obligó a Vercel a recompilar. Si eso vuelve a pasar, usa **Redeploy → desmarcar “Use existing build cache”** o haz un commit nuevo.
 
 ---
 
@@ -225,7 +211,13 @@ Si la API ya estaba arrancada, deténla con `Ctrl+C` y vuelve a arrancarla. `FRO
 En una terminal PowerShell separada, déjala abierta:
 
 ```powershell
-cloudflared tunnel --url http://localhost:3001
+powershell -ExecutionPolicy Bypass -File .\INICIAR_TUNEL.ps1
+```
+
+O manualmente, con la ruta completa porque no está en el PATH:
+
+```powershell
+& 'C:\Program Files (x86)\cloudflared\cloudflared.exe' tunnel --url http://localhost:3001
 ```
 
 Copia la URL HTTPS que imprime y úsala en el paso 3.2.
@@ -282,12 +274,13 @@ Abre `https://rutabol-scz-8ih4.vercel.app`, inicia sesión con `admin` y revisa 
 
 ## 8. Texto para el informe
 
-Pegar en la sección 3.2 de `BORRADOR_INFORME_IMRD.md`, sustituyendo el marcador del túnel:
+Ya aplicado en la sección 3.2 de `BORRADOR_INFORME_IMRD.md`:
 
 ```markdown
 - **Frontend:** publicado en `https://rutabol-scz-8ih4.vercel.app`.
 - **Repositorio:** `https://github.com/JohnDG32/Rutabol-scz`.
-- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://<URL_DEL_TÚNEL>/api`.
+- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://floors-narrative-themes-paintings.trycloudflare.com/api`.
+- **Frontend → API:** `NEXT_PUBLIC_API_URL=https://floors-narrative-themes-paintings.trycloudflare.com/api`, incrustada en el build de Vercel.
 - **PostgreSQL:** se ejecuta en Docker en Windows, puerto 5433.
 - **Declaración obligatoria:** Vercel publica únicamente la interfaz. La API NestJS y PostgreSQL se ejecutan en el entorno local de Windows; la API es accesible desde la URL pública solo a través del túnel HTTPS de demostración, que se cierra al finalizar la defensa.
 ```

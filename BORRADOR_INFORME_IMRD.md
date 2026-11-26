@@ -170,7 +170,8 @@ Se completó el proceso principal: alta de líneas y micros, consulta pública, 
 
 - **Frontend:** publicado en `https://rutabol-scz-8ih4.vercel.app`.
 - **Repositorio:** `https://github.com/JohnDG32/Rutabol-scz`.
-- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `[URL DEL TÚNEL]/api`.
+- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://floors-narrative-themes-paintings.trycloudflare.com/api`.
+- **Frontend → API:** `NEXT_PUBLIC_API_URL=https://floors-narrative-themes-paintings.trycloudflare.com/api`, incrustada en el build de Vercel.
 - **PostgreSQL:** se ejecuta en Docker en Windows, puerto 5433.
 - **Declaración obligatoria:** Vercel publica únicamente la interfaz. La API NestJS y PostgreSQL se ejecutan en el entorno local de Windows; la API es accesible desde la URL pública solo a través del túnel HTTPS de demostración, que se cierra al finalizar la defensa.
 
@@ -192,7 +193,8 @@ Se completó el proceso principal: alta de líneas y micros, consulta pública, 
 | Métricas por rol | Cuatro sesiones demo | Totales y resúmenes por rol, sin claves | **4/4 PASS** |
 | Rendimiento | 400 peticiones | 0 errores | Promedio 87 ms, p95 124 ms |
 | Persistencia | `pg_dump` + restore en base vacía | 14 tablas con conteos idénticos | **14/14 PASS** |
-| HTTPS y sesión | `https://www.rutabol.test/api/auth/login` | `HttpOnly; Secure; SameSite=Lax` | Verificado |
+| HTTPS y sesión (laboratorio local) | `https://www.rutabol.test/api/auth/login` | `HttpOnly; Secure; SameSite=Lax` | Verificado |
+| Publicación Ruta B | Vercel + túnel HTTPS de demostración | CORS y cookies entre dominios | `Access-Control-Allow-Origin: https://rutabol-scz-8ih4.vercel.app`, `Allow-Credentials: true`, `SameSite=None; Secure` |
 
 ### 3.4 Evidencias de infraestructura — **TU PARTE**
 
