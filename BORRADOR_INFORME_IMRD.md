@@ -151,9 +151,10 @@ Se siguió el manual de laboratorio de Ubuntu Server para instalar la VM, verifi
 | OpenSSH, claves, UFW, `systemctl`, `journalctl` | Ejecutado | E4–E8 del manual |
 | Postfix local | Ejecutado | E9 del manual |
 | TELNET vs SSH | Investigado | Tabla comparativa, sin credenciales reales |
-| BIND9 / DNS de laboratorio | Por ejecutar (no estaba en el manual) | Guía en `GUIA_PASO7_BIND9.md`; si no se ejecuta, se reporta como propuesto |
-| Publicación en Vercel | Por ejecutar | Guía en `GUIA_VERCEL.md`; la URL se pega en la sección 3.2 |
-| Túnel público para la API | Ruta B elegida; por ejecutar | Backend en Windows + túnel HTTPS; guía en `GUIA_PASO6_TUNEL.md` |
+| BIND9 / DNS de laboratorio | Propuesto/Investigado (no ejecutado) | No estaba en el manual; procedimiento en `GUIA_PASO7_BIND9.md`. No se presentan E10/E11 como ejecutados |
+| Publicación en Vercel | Ejecutado | `https://rutabol-scz-8ih4.vercel.app`; bundle con `NEXT_PUBLIC_API_URL` aplicada |
+| Túnel público para la API | Ejecutado | `https://floors-narrative-themes-paintings.trycloudflare.com/api`; HTTP 200, CORS y cookies verificados |
+| WebSocket en Ruta B | Ejecutado | `wss://floors-narrative-themes-paintings.trycloudflare.com/socket.io`; handshake HTTP 200 |
 | Stripe producción, SMTP real, VAPID real | Propuesto | Pendiente de credenciales reales; no se usan en la demo |
 
 ---
@@ -276,7 +277,11 @@ RUTABOL-SCZ resolvió la necesidad contextualizada mediante una plataforma web f
 - Anexo B. Tabla completa de RF/RNF/RN (`REQUERIMIENTOS.md`).
 - Anexo C. Salidas de los scripts de verificación.
 - Anexo D. Diagrama de arquitectura y modelo de datos.
-- Anexo E. Enlaces a GitHub y Vercel.
+- Anexo E. Enlaces a GitHub y Vercel:
+  - Repositorio: `https://github.com/JohnDG32/Rutabol-scz` (rama `rutabol-extras`).
+  - Frontend: `https://rutabol-scz-8ih4.vercel.app`.
+  - API de demostración: `https://floors-narrative-themes-paintings.trycloudflare.com/api` (túnel temporal, se cierra tras la defensa).
+  - Guías: `GUIA_VERCEL.md`, `GUIA_NEXT_PUBLIC_API_URL.md`, `GUIA_PASO6_TUNEL.md`, `GUIA_PASO7_BIND9.md`.
 
 ---
 
@@ -287,6 +292,8 @@ RUTABOL-SCZ resolvió la necesidad contextualizada mediante una plataforma web f
 3. Bajo cada foto escribe 2–4 líneas usando la plantilla.
 4. Si no ejecutaste BIND9, marca E10/E11 como **propuesto** y no como ejecutado. Si puedes ejecutarlo hoy, captura `named-checkconf`, `named-checkzone` y `dig`.
 5. Rellena la portada con los integrantes; no pongas número de grupo, porque el docente lo asignará el día de la defensa.
-6. Elige la ruta A o B y completa la sección **3.2**.
-7. Pega la URL real de Vercel en **3.2** y en el Anexo E.
+6. Ruta B ya elegida y documentada en **3.2**; URLs reales ya pegadas en **3.2** y en el Anexo E.
+7. Mantén BIND9 como **Propuesto/Investigado** si no ejecutaste los comandos; no incluyas E10/E11 como evidencia ejecutada.
 8. Convierte este Markdown a PDF con formato APA 7 o pásalo a Word y aplica Times New Roman 12, doble espacio y márgenes 2,5 cm.
+9. Prepara las diapositivas de la defensa y el ZIP final con el informe, evidencias, código y guías. No incluyas `.env`, secretos ni el Deploy Hook.
+10. Al terminar la configuración, rota `SESSION_SECRET`, `ADMIN_PASSWORD` y la password demo; actualiza la documentación si cambia la password demo.
