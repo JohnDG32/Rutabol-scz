@@ -16,6 +16,45 @@ Sistema web para mejorar el control, la seguridad, la organización y la transpa
 - **Infraestructura local:** DNS BIND9 opcional (ver `README-DNS.md`) y Caddy 2 como proxy inverso con HTTPS local.
 - **Certificados:** generados con `mkcert`; la autoridad local queda instalada en la computadora y los archivos de `certs/` no se versionan.
 
+## Arquitectura
+
+```text
+Navegador
+   │ HTTPS · JSON · cookie rutabol.sid (HttpOnly)
+   ▼
+Frontend Next.js (Vercel: https://rutabol-scz-8ih4.vercel.app)
+   │ NEXT_PUBLIC_API_URL = URL pública de la API + /api
+   ▼
+API REST NestJS (/api) + Socket.IO (/socket.io)
+   │ Validación, sesiones en PostgreSQL, RolesGuard
+   ▼
+PostgreSQL 17 (Docker en Windows, puerto 5433)
+```
+
+En la entrega se publica **solo el frontend** en Vercel. La API y la base de datos funcionan en el equipo local de Windows; la API se expone temporalmente con un túnel HTTPS de demostración y se cierra al finalizar la defensa. El DNS local con BIND9 es una investigación de laboratorio: no publica la aplicación ni reemplaza HTTPS.
+
+## Variables de entorno de ejemplo
+
+Copiar las plantillas y completar valores propios. **Nunca subir los archivos `.env` reales**: están excluidos por `.gitignore`.
+
+```dotenv
+# backend/.env.example
+PORT=3001
+DATABASE_URL=postgresql://USUARIO:CONTRASENA@localhost:5433/micros_scz
+SESSION_SECRET=ReemplazarPorAlMenos32Caracteres
+FRONTEND_ORIGIN=https://www.rutabol.test
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=CambiarPasswordAdmin
+RUTABOL_DEMO_PASSWORD=CambiarPasswordDemo
+```
+
+```dotenv
+# frontend/.env.local.example
+NEXT_PUBLIC_API_URL=https://www.rutabol.test/api
+```
+
+Para la Ruta B se usa además `FRONTEND_ORIGIN=https://rutabol-scz-8ih4.vercel.app`, `COOKIE_SAMESITE=none` y `COOKIE_SECURE=true` en el backend, y `NEXT_PUBLIC_API_URL=https://<URL_DEL_TUNEL>/api` en Vercel con Redeploy. Los pasos están en `GUIA_VERCEL.md` y `GUIA_PASO6_TUNEL.md`.
+
 ## Puesta en marcha
 
 ### 0. Nombre de la página y HTTPS
