@@ -252,6 +252,23 @@ La verificación propuesta usaría `sudo named-checkconf` y `sudo named-checkzon
 
 Aclaración obligatoria: un DNS local con dominio `.test` **no publica la aplicación en Internet**, no sustituye el HTTPS de Caddy/mkcert ni a un proxy inverso, y no expone PostgreSQL. Solo resuelve nombres dentro del laboratorio; la publicación real del frontend se hace en Vercel (Vercel, 2026) y la API se expone mediante el túnel HTTPS descrito en la sección 3.2.
 
+### 3.6 Registro y pulido del frontend
+
+Además de la publicación, se documenta la calidad de la interfaz solicitada en los requerimientos técnicos comunes: navegabilidad, vistas del proceso principal, formularios y mensajes comprensibles ante errores (Next.js, 2026).
+
+| Aspecto exigido | Implementación en RUTABOL-SCZ | Evidencia |
+|---|---|---|
+| Interfaz navegable | Catálogo público con búsqueda por placa o interno y filtro por línea; ruta `/dashboard` con métricas y paneles; navegación según el rol activo | `app/page.tsx`, `app/dashboard/page.tsx`, componentes `Consultas` y `PanelAdmin` |
+| Vistas del proceso principal | Formularios de acceso, consulta de tarifas, búsqueda de micros cercanos, creación y confirmación de pago, abordaje, trasbordo, emergencia y reportes | Componentes `Acceso`, `PanelPasajero`, `PanelConductor` y `PanelAdmin` |
+| Formularios | Campos controlados con atributos `required`, `min` y `maxLength`; listas desplegables para línea, categoría y viaje; carga de foto de estudiante | Código de los componentes y 45/45 PASS del flujo integral |
+| Mensajes ante errores | Bloque `alerta error` con `role="alert"` y botón **Reintentar**; aviso de éxito con `role="status"` y botón **Cerrar**; mensajes de la API y texto de respaldo en español | `app/page.tsx`, `Acceso.tsx`, `PanelPasajero.tsx` |
+| Estados de carga y pulido | Variable `procesando` que deshabilita acciones repetidas, verificación de sesión al arrancar y actualización en tiempo real por Socket.IO | Pruebas WebSocket 4/4 PASS y verificación de roles 14/14 PASS |
+| Adaptabilidad | Rejillas y media queries a 950 px y 600 px en `globals.css`; mapa con capa esquemática de respaldo | `frontend/src/app/globals.css`, `MapaCercanos.tsx` |
+
+El pulido se centró en que cada operación entregue retroalimentación visible: el usuario ve el resultado de la acción, puede reintentar si falla y nunca queda sin explicación. Los errores de red o de validación se muestran con el mensaje devuelto por la API y, si este no está disponible, con un texto alternativo comprensible. Las vistas sensibles se ocultan hasta que termina la verificación de sesión, y el WebSocket se conecta a la URL del túnel derivada de `NEXT_PUBLIC_API_URL`, no al origen de Vercel.
+
+Esta capa fue verificada junto con el resto del sistema: el flujo principal pasó 45/45 comprobaciones, los paneles por rol 14/14 y el handshake de Socket.IO 4/4. La demostración pública se realiza en `https://rutabol-scz-8ih4.vercel.app`; los mensajes de error no exponen contraseñas, hashes ni datos personales.
+
 ---
 
 ## IV. Discusión
