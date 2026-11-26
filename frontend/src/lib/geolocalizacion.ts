@@ -32,7 +32,7 @@ export function obtenerUbicacion(): Promise<Ubicacion> {
     return Promise.reject(new Error('Este navegador no ofrece geolocalización. Puede escribir las coordenadas a mano.'));
   }
   if (typeof window !== 'undefined' && !window.isSecureContext) {
-    return Promise.reject(new Error('El GPS del navegador requiere HTTPS. Abra https://www.rutabol.test.'));
+    return Promise.reject(new Error('El GPS del navegador requiere HTTPS. Abra https://rutabol-scz-8ih4.vercel.app.'));
   }
 
   return new Promise((resolve, reject) => {
