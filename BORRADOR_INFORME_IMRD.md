@@ -145,7 +145,7 @@ Se siguió el manual de laboratorio de Ubuntu Server para instalar la VM, verifi
 | Autenticación, sesión y roles | Implementado | Cookie `rutabol.sid`, `RolesGuard` |
 | RF-01 a RF-24 y RN-01 a RN-11 | Implementado | `verificar-flujo.ps1`: 45/45 PASS |
 | GPS real, WebSocket, mapa Leaflet | Implementado | Pruebas 3/3 y 4/4 PASS |
-| Stripe modo prueba | Implementado | `sk_test`/`pk_test`, sin datos de tarjeta |
+| Stripe modo prueba | Implementado | Claves de prueba, sin datos de tarjeta reales |
 | Dashboard, CRUD de usuarios y métricas | Implementado | 14/14 y 4/4 PASS |
 | Ubuntu Server 22.04.5 LTS | Ejecutado | E1–E5 del manual, capturas reales |
 | OpenSSH, claves, UFW, `systemctl`, `journalctl` | Ejecutado | E4–E8 del manual |
@@ -188,7 +188,7 @@ Se completó el proceso principal: alta de líneas y micros, consulta pública, 
 | GPS real del navegador | `navigator.geolocation` | Origen `GPS_NAVEGADOR` y respaldo manual | **3/3 PASS** |
 | Actualización en tiempo real | Socket.IO sobre HTTPS | Evento recibido por el navegador | **4/4 PASS** |
 | Fotografías de estudiantes | Archivos en disco | URL de archivo, sin data URL en BD | **5/5 PASS** |
-| Stripe en prueba | Clave `sk_test` inválida y modo simulado | Modo simulado intacto y errores controlados | **10/10 PASS** |
+| Stripe en prueba | Clave de prueba inválida y modo simulado | Modo simulado intacto y errores controlados | **10/10 PASS** |
 | Notificaciones externas | Modo `ARCHIVO`, correo local | `.eml` generado sin bloquear la operación | **10/10 PASS** |
 | CRUD de usuarios | Alta, rol, baja lógica | Sin `password_hash` en respuestas | **14/14 PASS** |
 | Métricas por rol | Cuatro sesiones demo | Totales y resúmenes por rol, sin claves | **4/4 PASS** |
