@@ -46,7 +46,7 @@ RUTABOL-SCZ aborda esa necesidad mediante una plataforma web que centraliza el c
 
 El proyecto retoma los requerimientos funcionales y no funcionales elaborados durante la asignatura (Actividad 01) y los lleva a una implementación ejecutable. El enunciado socioformativo permitió continuar con la modalidad RUTABOL-SCZ o migrar a un emprendimiento local; el equipo eligió continuar con la línea de transporte por ser la problemática trabajada durante el curso.
 
-La solución se apoya en tecnologías de referencia del curso —Next.js, NestJS, PostgreSQL y Docker— y complementa el desarrollo con infraestructura de software libre.
+La solución se apoya en tecnologías de referencia del curso —Next.js (Next.js, 2026), NestJS (NestJS, 2026), PostgreSQL (PostgreSQL, 2026) y Docker— y complementa el desarrollo con infraestructura de software libre.
 
 ### 1.3 Objetivo general y objetivos específicos
 
@@ -133,7 +133,7 @@ Se emplearon scripts PowerShell de verificación: flujo integral (45 comprobacio
 
 ### 2.8 Procedimiento de investigación de infraestructura
 
-Se siguió el manual de laboratorio de Ubuntu Server para instalar la VM, verificar versión, red y actualización, crear el usuario `operador`, preparar `/srv/rutabol`, instalar y verificar OpenSSH, administrar servicios con `systemctl` y `journalctl`, practicar autenticación por claves, configurar UFW y enviar correo local con Postfix. TELNET se investigó de forma comparativa sin instalar `telnetd` ni enviar contraseñas reales. Como ampliación exigida por el proyecto socioformativo se investigó BIND9 con una zona `.test`.
+Se siguió el manual de laboratorio de Ubuntu Server para instalar la VM, verificar versión, red y actualización, crear el usuario `operador`, preparar `/srv/rutabol`, instalar y verificar OpenSSH, administrar servicios con `systemctl` y `journalctl`, practicar autenticación por claves, configurar UFW y enviar correo local con Postfix (Ubuntu, 2026). TELNET se investigó de forma comparativa sin instalar `telnetd` ni enviar contraseñas reales. Como ampliación exigida por el proyecto socioformativo se investigó BIND9 con una zona `.test`.
 
 ### 2.9 Cuadro: implementado, investigado y propuesto
 
@@ -169,7 +169,7 @@ Se completó el proceso principal: alta de líneas y micros, consulta pública, 
 
 > Decisión tomada: **Ruta B**. El backend y PostgreSQL se ejecutan en **Windows con Docker**; la API se expone mediante un túnel HTTPS de demostración.
 
-- **Frontend:** publicado en `https://rutabol-scz-8ih4.vercel.app`.
+- **Frontend:** publicado en `https://rutabol-scz-8ih4.vercel.app` mediante el flujo de despliegue de Vercel (Vercel, 2026).
 - **Repositorio:** `https://github.com/JohnDG32/Rutabol-scz`.
 - **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://floors-narrative-themes-paintings.trycloudflare.com/api`.
 - **Frontend → API:** `NEXT_PUBLIC_API_URL=https://floors-narrative-themes-paintings.trycloudflare.com/api`, incrustada en el build de Vercel.
@@ -236,9 +236,21 @@ Inserta aquí tus capturas reales del laboratorio, una por una, con una explicac
 
 ### 3.5 DNS con BIND9
 
-Si ejecutaste el laboratorio, pega aquí los comandos y salidas reales de `named-checkconf`, `named-checkzone`, `systemctl restart bind9`, `dig` y `nslookup`. Explica SOA, NS, A, CNAME y MX. Si no lo ejecutaste, escribe que la configuración queda **propuesta** y explica el resultado esperado, marcando claramente que no fue probado.
+**Estado: propuesto/investigado, no ejecutado.** El contenido de esta sección procede del estudio de la documentación de BIND 9 (Internet Systems Consortium, 2026) y de la guía `GUIA_PASO7_BIND9.md`; por ello se describen la configuración y los resultados **esperados**, sin presentarlos como salidas obtenidas.
 
-Aclaración obligatoria: un DNS local con dominio `.test` **no publica la aplicación en Internet**, no sustituye el HTTPS de Caddy/mkcert ni a un proxy inverso. Solo resuelve nombres dentro del laboratorio.
+Un servidor DNS autoritativo responde por un zona de la que es responsable: no reenvía la consulta a otro servidor, sino que devuelve la información registrada en sus archivos de zona. En la propuesta se usa el dominio reservado `rutabol.test` y BIND9 sobre Ubuntu Server 22.04.5 LTS, con `listen-on { 127.0.0.1; }` y `allow-query { localhost; }` para confinar el servicio a la máquina. Los registros previstos son:
+
+| Registro | Función en la propuesta | Relación con RUTABOL-SCZ |
+|---|---|---|
+| SOA | Define la zona maestra, el servidor primario y el número de serie | Identifica la versión de la zona `rutabol.test` |
+| NS | Indica qué servidor tiene autoridad sobre la zona | Apunta a `ns.rutabol.test`, gestionado por la VM |
+| A | Traduce nombre a IPv4 | `www.rutabol.test` → `127.0.0.1` en el laboratorio |
+| CNAME | Crea un alias | `api.rutabol.test` → `www.rutabol.test` |
+| MX | Define el servidor de correo | `10 mail.rutabol.test.`, coherente con el Postfix local de E9 |
+
+La verificación propuesta usaría `sudo named-checkconf` y `sudo named-checkzone rutabol.test /etc/bind/zones/db.rutabol.test` para validar sintaxis y zona, seguida de `dig @127.0.0.1 www.rutabol.test A`, `dig @127.0.0.1 api.rutabol.test CNAME` y `dig @127.0.0.1 rutabol.test MX`. El resultado esperado sería `status: NOERROR`, la IP `127.0.0.1`, el alias hacia `www` y la prioridad `10`. **Ninguno de esos comandos fue ejecutado**, por lo que no se adjuntan E10 ni E11 como evidencias reales.
+
+Aclaración obligatoria: un DNS local con dominio `.test` **no publica la aplicación en Internet**, no sustituye el HTTPS de Caddy/mkcert ni a un proxy inverso, y no expone PostgreSQL. Solo resuelve nombres dentro del laboratorio; la publicación real del frontend se hace en Vercel (Vercel, 2026) y la API se expone mediante el túnel HTTPS descrito en la sección 3.2.
 
 ---
 
