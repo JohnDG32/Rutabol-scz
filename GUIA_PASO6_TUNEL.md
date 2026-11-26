@@ -141,7 +141,7 @@ socket = io(socketOrigin, { path: '/socket.io', withCredentials: true, /* ... */
 El handshake correcto se comprueba con:
 
 ```powershell
-curl.exe -s -i --ssl-no-revoke "https://floors-narrative-themes-paintings.trycloudflare.com/socket.io/?EIO=4&transport=polling"
+curl.exe -s -i --ssl-no-revoke "https://auckland-flu-firm-deny.trycloudflare.com/socket.io/?EIO=4&transport=polling"
 ```
 
 Debe devolver HTTP 200 con `0{"sid":...}` y `Access-Control-Allow-Origin: https://rutabol-scz-8ih4.vercel.app`.

@@ -153,8 +153,8 @@ Se siguió el manual de laboratorio de Ubuntu Server para instalar la VM, verifi
 | TELNET vs SSH | Investigado | Tabla comparativa, sin credenciales reales |
 | BIND9 / DNS de laboratorio | Propuesto/Investigado (no ejecutado) | No estaba en el manual; procedimiento en `GUIA_PASO7_BIND9.md`. No se presentan E10/E11 como ejecutados |
 | Publicación en Vercel | Ejecutado | `https://rutabol-scz-8ih4.vercel.app`; bundle con `NEXT_PUBLIC_API_URL` aplicada |
-| Túnel público para la API | Ejecutado | `https://floors-narrative-themes-paintings.trycloudflare.com/api`; HTTP 200, CORS y cookies verificados |
-| WebSocket en Ruta B | Ejecutado | `wss://floors-narrative-themes-paintings.trycloudflare.com/socket.io`; handshake HTTP 200 |
+| Túnel público para la API | Ejecutado | `https://auckland-flu-firm-deny.trycloudflare.com/api`; HTTP 200, CORS y cookies verificados |
+| WebSocket en Ruta B | Ejecutado | `wss://auckland-flu-firm-deny.trycloudflare.com/socket.io`; handshake HTTP 200 |
 | Stripe producción, SMTP real, VAPID real | Propuesto | Pendiente de credenciales reales; no se usan en la demo |
 
 ---
@@ -171,8 +171,8 @@ Se completó el proceso principal: alta de líneas y micros, consulta pública, 
 
 - **Frontend:** publicado en `https://rutabol-scz-8ih4.vercel.app` mediante el flujo de despliegue de Vercel (Vercel, 2026).
 - **Repositorio:** `https://github.com/JohnDG32/Rutabol-scz`.
-- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://floors-narrative-themes-paintings.trycloudflare.com/api`.
-- **Frontend → API:** `NEXT_PUBLIC_API_URL=https://floors-narrative-themes-paintings.trycloudflare.com/api`, incrustada en el build de Vercel.
+- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://auckland-flu-firm-deny.trycloudflare.com/api`.
+- **Frontend → API:** `NEXT_PUBLIC_API_URL=https://auckland-flu-firm-deny.trycloudflare.com/api`, incrustada en el build de Vercel.
 - **PostgreSQL:** se ejecuta en Docker en Windows, puerto 5433.
 - **Declaración obligatoria:** Vercel publica únicamente la interfaz. La API NestJS y PostgreSQL se ejecutan en el entorno local de Windows; la API es accesible desde la URL pública solo a través del túnel HTTPS de demostración, que se cierra al finalizar la defensa.
 
@@ -292,7 +292,7 @@ RUTABOL-SCZ resolvió la necesidad contextualizada mediante una plataforma web f
 - Anexo E. Enlaces a GitHub y Vercel:
   - Repositorio: `https://github.com/JohnDG32/Rutabol-scz` (rama `rutabol-extras`).
   - Frontend: `https://rutabol-scz-8ih4.vercel.app`.
-  - API de demostración: `https://floors-narrative-themes-paintings.trycloudflare.com/api` (túnel temporal, se cierra tras la defensa).
+  - API de demostración: `https://auckland-flu-firm-deny.trycloudflare.com/api` (túnel temporal, se cierra tras la defensa).
   - Guías: `GUIA_VERCEL.md`, `GUIA_NEXT_PUBLIC_API_URL.md`, `GUIA_PASO6_TUNEL.md`, `GUIA_PASO7_BIND9.md`.
 
 ---

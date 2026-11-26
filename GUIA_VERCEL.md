@@ -87,9 +87,9 @@ No hace falta instalar nada más: no se usa Caddy para el túnel, no se instala 
 
 ## 2. Estado final comprobado (26 de noviembre de 2026)
 
-- **Túnel activo:** `https://floors-narrative-themes-paintings.trycloudflare.com`
+- **Túnel activo:** `https://auckland-flu-firm-deny.trycloudflare.com`
 - **API por túnel:** `GET /api/lineas` → HTTP 200.
-- **Bundle de Vercel:** contiene `https://floors-narrative-themes-paintings.trycloudflare.com/api`. Ya no usa el valor por defecto para las peticiones.
+- **Bundle de Vercel:** contiene `https://auckland-flu-firm-deny.trycloudflare.com/api`. Ya no usa el valor por defecto para las peticiones.
 - **CORS:** preflight con `Origin: https://rutabol-scz-8ih4.vercel.app` devuelve `Access-Control-Allow-Origin: https://rutabol-scz-8ih4.vercel.app` y `Allow-Credentials: true`.
 - **Backend:** `FRONTEND_ORIGIN=https://rutabol-scz-8ih4.vercel.app`, `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true`.
 
@@ -253,9 +253,9 @@ Access-Control-Allow-Credentials: true
 
 Abre `https://rutabol-scz-8ih4.vercel.app`, inicia sesión con `admin` y revisa **DevTools → Network**:
 
-- Las peticiones deben ir a `https://floors-narrative-themes-paintings.trycloudflare.com/api/...`.
+- Las peticiones deben ir a `https://auckland-flu-firm-deny.trycloudflare.com/api/...`.
 - No deben aparecer `localhost:3001` ni `www.rutabol.test`.
-- En **Network → WS**, el handshake debe ir a `wss://floors-narrative-themes-paintings.trycloudflare.com/socket.io/...`, no a Vercel.
+- En **Network → WS**, el handshake debe ir a `wss://auckland-flu-firm-deny.trycloudflare.com/socket.io/...`, no a Vercel.
 
 **Credenciales:** para `admin` usa el valor de `ADMIN_PASSWORD` en `backend\.env`. Para `conductor1`, `pasajero1` y `estudiante1` usa `RUTABOL_DEMO_PASSWORD`. Si pones la password demo con `admin`, el login responde 401 y `/api/auth/me` también dará 401: eso no es un problema de CORS ni de cookie.
 
@@ -284,8 +284,8 @@ Ya aplicado en la sección 3.2 de `BORRADOR_INFORME_IMRD.md`:
 ```markdown
 - **Frontend:** publicado en `https://rutabol-scz-8ih4.vercel.app`.
 - **Repositorio:** `https://github.com/JohnDG32/Rutabol-scz`.
-- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://floors-narrative-themes-paintings.trycloudflare.com/api`.
-- **Frontend → API:** `NEXT_PUBLIC_API_URL=https://floors-narrative-themes-paintings.trycloudflare.com/api`, incrustada en el build de Vercel.
+- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://auckland-flu-firm-deny.trycloudflare.com/api`.
+- **Frontend → API:** `NEXT_PUBLIC_API_URL=https://auckland-flu-firm-deny.trycloudflare.com/api`, incrustada en el build de Vercel.
 - **PostgreSQL:** se ejecuta en Docker en Windows, puerto 5433.
 - **Declaración obligatoria:** Vercel publica únicamente la interfaz. La API NestJS y PostgreSQL se ejecutan en el entorno local de Windows; la API es accesible desde la URL pública solo a través del túnel HTTPS de demostración, que se cierra al finalizar la defensa.
 ```
