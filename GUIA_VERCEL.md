@@ -253,8 +253,11 @@ Access-Control-Allow-Credentials: true
 
 Abre `https://rutabol-scz-8ih4.vercel.app`, inicia sesión con `admin` y revisa **DevTools → Network**:
 
-- Las peticiones deben ir a `https://<URL_DEL_TÚNEL>/api/...`.
+- Las peticiones deben ir a `https://floors-narrative-themes-paintings.trycloudflare.com/api/...`.
 - No deben aparecer `localhost:3001` ni `www.rutabol.test`.
+- En **Network → WS**, el handshake debe ir a `wss://floors-narrative-themes-paintings.trycloudflare.com/socket.io/...`, no a Vercel.
+
+**Credenciales:** para `admin` usa el valor de `ADMIN_PASSWORD` en `backend\.env`. Para `conductor1`, `pasajero1` y `estudiante1` usa `RUTABOL_DEMO_PASSWORD`. Si pones la password demo con `admin`, el login responde 401 y `/api/auth/me` también dará 401: eso no es un problema de CORS ni de cookie.
 
 ---
 
@@ -269,6 +272,8 @@ Abre `https://rutabol-scz-8ih4.vercel.app`, inicia sesión con `admin` y revisa 
 | `Mixed Content` | La variable usa `http://` | Usar `https://<URL_DEL_TÚNEL>/api` y redesplegar |
 | La API deja de responder | Se cerró la terminal de Cloudflared | Levantar el túnel; si cambió la URL, actualizar variable y redesplegar |
 | Confusión con “Production Branch” | Está en **Settings → Environments → Production → Branch Tracking**, no en Git ni en Environment Variables | Verificar allí que diga `rutabol-extras`, o usar **Deployments → Create Deployment → Branch-Based** |
+| `WebSocket connection to 'wss://rutabol-scz-8ih4.vercel.app/socket.io' failed` | El cliente `io()` no recibió la URL del túnel | Derivar el origen del socket de `NEXT_PUBLIC_API_URL` en `frontend/src/lib/socket.ts` y redesplegar |
+| `/api/auth/me` → 401 tras “login” | El login falló: `admin` usa `ADMIN_PASSWORD`, no la password demo | Usar la password correcta; verificar que `POST /api/auth/login` devuelva 201 y `Set-Cookie` |
 
 ---
 

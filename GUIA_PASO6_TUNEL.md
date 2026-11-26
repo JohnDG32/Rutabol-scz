@@ -122,6 +122,30 @@ Puntos a respetar:
 - `credentials: true` es el equivalente en WebSocket del `credentials: true` de `fetch`.
 - Tras cambiar `.env`, reiniciar el backend para que el decorador lea el valor nuevo.
 
+### Cliente frontend (corregido el 26/11/2026)
+
+Archivo: `frontend/src/lib/socket.ts`. En Ruta B **no basta** con `io({ path: '/socket.io' })`: eso conecta con el origen de Vercel y produce:
+
+```text
+WebSocket connection to 'wss://rutabol-scz-8ih4.vercel.app/socket.io/...' failed
+```
+
+La URL del socket debe derivarse de `NEXT_PUBLIC_API_URL` quitando el sufijo `/api`:
+
+```ts
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.rutabol.test/api';
+const socketOrigin = apiUrl.replace(/\/api\/?$/, '');
+socket = io(socketOrigin, { path: '/socket.io', withCredentials: true, /* ... */ });
+```
+
+El handshake correcto se comprueba con:
+
+```powershell
+curl.exe -s -i --ssl-no-revoke "https://floors-narrative-themes-paintings.trycloudflare.com/socket.io/?EIO=4&transport=polling"
+```
+
+Debe devolver HTTP 200 con `0{"sid":...}` y `Access-Control-Allow-Origin: https://rutabol-scz-8ih4.vercel.app`.
+
 ---
 
 ## 5. Variables sugeridas en `backend/.env`
