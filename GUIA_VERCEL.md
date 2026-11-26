@@ -1,140 +1,256 @@
-# Guía para publicar el frontend de RUTABOL-SCZ en Vercel (Ruta B)
+# Guía actualizada — Publicación en Vercel (Ruta B)
 
-Esta guía es para un estudiante que recién creó su cuenta de Vercel. Cubre **solo el frontend** del monorepo. Según la **Ruta B**, el backend NestJS y PostgreSQL siguen ejecutándose en **Windows con Docker** y la API se expone mediante un **túnel HTTPS de demostración**. Vercel **no aloja la API ni la base de datos**.
+**Estado de esta guía:** ajustada el 25 de noviembre de 2026 a la documentación actual de Vercel y al estado real del proyecto.
 
-- Repositorio: `https://github.com/JohnDG32/Rutabol-scz`
-- Rama de entrega: `rutabol-extras`
-- Carpeta del frontend: `frontend`
-- Variable obligatoria: `NEXT_PUBLIC_API_URL=https://<URL_DEL_TUNEL>/api`
+**URL pública del frontend:** `https://rutabol-scz-8ih4.vercel.app`
+**Repo:** `https://github.com/JohnDG32/Rutabol-scz`
+**Rama de entrega:** `rutabol-extras`
+**Carpeta del frontend:** `frontend`
 
 ---
 
-## 0. Comprobación previa: no versionar secretos
+## 0. Primero: el ciclo global, sin detalles
 
-Antes de importar el proyecto, verifica desde una terminal en la raíz del repo:
+Piensa en tres piezas solamente:
 
-```powershell
-git branch --show-current
-git ls-files | Select-String -Pattern '(^|/)\.env'
-git log --all --name-only --pretty=format: | Sort-Object -Unique | Select-String -Pattern '(^|/)\.env'
+```text
+1) NAVEGADOR
+   Abres https://rutabol-scz-8ih4.vercel.app
+   El frontend es Next.js y vive en Vercel.
+
+2) TÚNEL HTTPS
+   El navegador llama a https://<URL-DEL-TÚNEL>/api/...
+   Cloudflared recibe esa petición en Internet y la reenvía a tu Windows.
+
+3) WINDOWS
+   NestJS escucha en http://localhost:3001/api/...
+   PostgreSQL está en Docker en el puerto 5433.
+   La API consulta la BD y devuelve JSON al navegador.
 ```
 
-Resultado esperado:
+La cookie de sesión viaja del navegador a la API **cruzando dominios** (Vercel → túnel), por eso hacen falta tres ajustes juntos:
 
-- La rama activa debe ser `rutabol-extras`.
-- Solo deben aparecer archivos **plantilla**, por ejemplo `backend/.env.example` y `frontend/.env.local.example`.
-- **No** deben aparecer `.env`, `.env.local`, `.env.production`, contraseñas, claves ni tokens reales.
+- `NEXT_PUBLIC_API_URL` en Vercel → para que el frontend sepa dónde está la API.
+- `FRONTEND_ORIGIN` en el backend → para que NestJS acepte peticiones desde Vercel.
+- `COOKIE_SAMESITE=none` y `COOKIE_SECURE=true` en el backend → para que la cookie se envíe entre dominios distintos.
 
-Los `.env` reales están ignorados por Git y los ejemplos ya fueron sanitizados en todas las ramas. Si aparece algún archivo real, **detén el proceso** y solicita revisión: nunca lo subas a GitHub, lo pegues en Vercel ni lo incluyas en el informe.
-
----
-
-## 1. Importar el repositorio desde GitHub en Vercel
-
-1. Entra a Vercel y pulsa **Add New... → Project**.
-2. Elige **Continue with GitHub** y autoriza el acceso al repositorio `JohnDG32/Rutabol-scz` (idealmente solo a ese repo).
-3. Haz clic en **Import** junto a `JohnDG32/Rutabol-scz`.
-4. En la configuración del proyecto verifica la rama: debe desplegarse `rutabol-extras`. Si la pantalla de importación no permite elegirla, importa igual y después ve a **Project Settings → Git → Production Branch** y pon `rutabol-extras`; luego haz un **Redeploy**.
-5. En **Root Directory**, pulsa **Edit**, escribe `frontend` y confirma con **Continue**.  
-   No dejes la raíz del monorepo (`.`).
-6. En **Framework Preset**, selecciona **Next.js**. Vercel suele detectarlo automáticamente, pero confírmalo.
+Si falta uno de esos tres, la interfaz abre pero el login o las consultas fallan.
 
 ---
 
-## 2. Comandos de build
+## 1. ¿Qué es Cloudflare y por qué hace falta?
 
-En **Build and Output Settings** deja exactamente estos valores:
+**Cloudflare** es una empresa que ofrece red, DNS y protección.  
+**Cloudflared** es un programita que instalas en tu Windows y crea un **túnel seguro saliente** hacia Cloudflare:
 
-| Opción | Valor |
+- No abres puertos en tu router.
+- No necesitas IP pública.
+- Obtienes una URL HTTPS temporal, por ejemplo `https://abc123.trycloudflare.com`.
+- Mientras la terminal de Cloudflared esté abierta, esa URL funciona. Si la cierras, se apaga; si la reinicias, la URL cambia.
+
+En este proyecto Cloudflared **solo reenvía al puerto 3001 de NestJS**. Nunca se expone PostgreSQL.
+
+### ¿Hay que instalar más cosas?
+
+No casi nada. Ya tienes Node, Docker, el repo y el backend compilado. Solo falta:
+
+```powershell
+winget install Cloudflare.cloudflared
+```
+
+Opcional, **no necesario** para la entrega: Vercel CLI (`npm i -g vercel`). Todo se puede hacer desde la网页 de Vercel.
+
+No hace falta instalar nada más: no se usa Caddy para el túnel, no se instala Apache/Nginx y no se configura BIND9 para publicar la web.
+
+---
+
+## 2. Estado real comprobado
+
+Inspeccioné el JavaScript publicado de `https://rutabol-scz-8ih4.vercel.app/` y hoy contiene:
+
+```text
+https://www.rutabol.test/api
+```
+
+Eso es el **valor por defecto** de `frontend/src/lib/api.ts`. Significa que `NEXT_PUBLIC_API_URL` todavía no está aplicada al deployment. Por eso aparece error de CORS o de conexión.
+
+Además, en `backend\.env` hoy aparecen estas claves:
+
+```text
+ADMIN_PASSWORD
+ADMIN_USERNAME
+DATABASE_URL
+FRONTEND_ORIGIN
+PORT
+RUTABOL_DEMO_PASSWORD
+SESSION_SECRET
+```
+
+**Faltan** `COOKIE_SAMESITE` y `COOKIE_SECURE`. El código ya las soporta, pero hay que agregarlas.
+
+---
+
+## 3. Configurar Vercel, paso a paso con la interfaz actual
+
+### 3.1 Rama de producción
+
+En Vercel, entra a tu proyecto y ve a:
+
+**Project Settings → Git → Production Branch**
+
+Pon:
+
+```text
+rutabol-extras
+```
+
+Antes se veía en otra pestaña; en la versión actual está en **Settings → Git**, no dentro de Environment Variables. Si el despliegue ya salió con esa rama, igual conviene verificarlo.
+
+### 3.2 Variable de entorno
+
+Ve a:
+
+**Project Settings → Environment Variables → Add New**
+
+Completa:
+
+| Campo | Valor |
 |---|---|
-| Root Directory | `frontend` |
-| Framework Preset | `Next.js` |
-| Install Command | `npm install` |
-| Build Command | `npm run build` |
-| Output Directory | `.next` |
+| Key | `NEXT_PUBLIC_API_URL` |
+| Value | `https://<URL_DEL_TÚNEL>/api` |
+| Type | **Config** — no Secret, porque es una URL pública |
+| Environments | Production, Preview y Development |
 
-No uses `npm run dev` ni `next dev`: Vercel necesita el build de producción.
+Guardas.
+
+Reglas para el valor:
+
+- Debe empezar con `https://`.
+- Debe terminar exactamente en `/api`, sin barra final.
+- No incluyas `/lineas`, `/auth/login` ni endpoints concretos.
+- No pegues contraseñas, tokens ni el Deploy Hook.
+
+### 3.3 Redesplegar, obligatorio
+
+La documentación actual de Vercel dice literalmente que los cambios de variables **no se aplican a deployments anteriores**. Por eso:
+
+**Deployments → elegir el deployment vigente → Redeploy**
+
+O también funciona hacer un commit nuevo y pushear a `rutabol-extras`.
+
+Después de que el estado sea **Ready**, vuelve a revisar el bundle. Ya no debe aparecer `www.rutabol.test/api`.
+
+### 3.4 La URL pública
+
+La URL del frontend es:
+
+```text
+https://rutabol-scz-8ih4.vercel.app
+```
+
+La encuentras en **Project Overview → Deployment → Domains** o en **Project Settings → Domains**.
+
+La URL que empieza con:
+
+```text
+https://api.vercel.com/v1/integrations/deploy/...
+```
+
+es un **Deploy Hook**: sirve para disparar builds desde CI. No es la página pública y contiene un token. No la pongas en el informe ni en GitHub.
 
 ---
 
-## 3. Configurar la variable de entorno en el dashboard
+## 4. Conectar el backend en Windows
 
-Antes de dar **Deploy**, abre **Environment Variables** y añade una sola variable:
+En `backend\.env` agrega o confirma:
 
-| Name | Value | Entornos |
+```dotenv
+FRONTEND_ORIGIN=https://rutabol-scz-8ih4.vercel.app
+COOKIE_SAMESITE=none
+COOKIE_SECURE=true
+```
+
+Sin barra final en `FRONTEND_ORIGIN`.
+
+Luego reinicia la API:
+
+```powershell
+cd C:\Users\Johnd\Desktop\02_TecnologiaWeb\Rutabol-scz\Rutabol-scz\backend
+npm run start
+```
+
+Si la API ya estaba arrancada, deténla con `Ctrl+C` y vuelve a arrancarla. `FRONTEND_ORIGIN` y las cookies se leen al iniciar.
+
+---
+
+## 5. Levantar el túnel
+
+En una terminal PowerShell separada, déjala abierta:
+
+```powershell
+cloudflared tunnel --url http://localhost:3001
+```
+
+Copia la URL HTTPS que imprime y úsala en el paso 3.2.
+
+Si cierras esa terminal, la URL muere. Si la reinicias y cambia la URL, actualiza `NEXT_PUBLIC_API_URL` en Vercel y haz otro **Redeploy**. El backend no necesita reiniciarse por cambiar el túnel, porque su `FRONTEND_ORIGIN` depende de Vercel, no del túnel.
+
+---
+
+## 6. Verificación
+
+### 6.1 API detrás del túnel
+
+```powershell
+curl.exe -i --ssl-no-revoke "https://<URL_DEL_TÚNEL>/api/lineas"
+```
+
+Esperado: HTTP 200 con JSON.
+
+### 6.2 Preflight CORS
+
+```powershell
+curl.exe -i --ssl-no-revoke -X OPTIONS "https://<URL_DEL_TÚNEL>/api/auth/login" -H "Origin: https://rutabol-scz-8ih4.vercel.app" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type"
+```
+
+Esperado:
+
+```text
+Access-Control-Allow-Origin: https://rutabol-scz-8ih4.vercel.app
+Access-Control-Allow-Credentials: true
+```
+
+### 6.3 Navegador
+
+Abre `https://rutabol-scz-8ih4.vercel.app`, inicia sesión con `admin` y revisa **DevTools → Network**:
+
+- Las peticiones deben ir a `https://<URL_DEL_TÚNEL>/api/...`.
+- No deben aparecer `localhost:3001` ni `www.rutabol.test`.
+
+---
+
+## 7. Problemas frecuentes
+
+| Síntoma | Causa | Solución |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | `https://<URL_DEL_TUNEL>/api` | Production, Preview y Development (al menos Production) |
-
-Sustituye `<URL_DEL_TUNEL>` por la URL HTTPS real del túnel de demostración. Conserva el prefijo `/api` y no dejes una barra final de más. El detalle de esta variable se explica en el archivo de configuración del frontend; para esta publicación es **obligatorio** configurarla aquí.
-
-Reglas importantes:
-
-- Configura la variable **solo en el dashboard de Vercel**; no la escribas en un archivo versionado.
-- No pegues tokens de GitHub/Vercel, contraseñas de PostgreSQL ni claves de la API.
-- No copies el contenido de `.env` o `.env.local` al dashboard ni al informe.
-- Esta URL apunta a la **API**, no al frontend.
-- Si el túnel cambia de URL, edita la variable y haz **Redeploy** (next.js incorpora las variables `NEXT_PUBLIC_*` durante la compilación).
+| El bundle sigue con `www.rutabol.test/api` | La variable no se aplicó al build o el deployment es antiguo | Configurar `NEXT_PUBLIC_API_URL` y hacer **Redeploy** |
+| Vercel busca `package.json` en la raíz | Root Directory incorrecto | **Root Directory = `frontend`** y redesplegar |
+| CORS con `Access-Control-Allow-Origin` incorrecto | `FRONTEND_ORIGIN` no es la URL exacta de Vercel o el backend no se reinició | Poner `https://rutabol-scz-8ih4.vercel.app` y reiniciar API |
+| La cookie no se envía | Faltan `COOKIE_SAMESITE=none` y `COOKIE_SECURE=true` | Agregarlas y reiniciar API |
+| `Mixed Content` | La variable usa `http://` | Usar `https://<URL_DEL_TÚNEL>/api` y redesplegar |
+| La API deja de responder | Se cerró la terminal de Cloudflared | Levantar el túnel; si cambió la URL, actualizar variable y redesplegar |
+| Confusión con “Production Branch” | Está en **Settings → Git**, no en Environment Variables | Verificar allí que diga `rutabol-extras` |
 
 ---
 
-## 4. Hacer el deploy
+## 8. Texto para el informe
 
-1. Pulsa **Deploy**.
-2. Espera a que el estado cambie a **Ready**. Revisa los logs: deben ejecutarse `npm install` y `npm run build` desde `frontend`.
-3. Si aparece **Failed**, abre **Build Logs** y corrige el error indicado antes de volver a desplegar.
-
----
-
-## 5. Obtener y verificar la URL pública
-
-1. En **Project Overview → Domains**, copia la URL pública, por ejemplo `https://<PROYECTO>.vercel.app`.
-2. Comprobación HTTP básica desde terminal:
-
-   ```powershell
-   curl -I https://<PROYECTO>.vercel.app
-   ```
-
-   Esperado: respuesta `200 OK`, o redirección `307/308` seguida de `200 OK`.
-
-3. Comprobación en el navegador:
-   - Carga la portada y el login.
-   - Abre **DevTools → Network**.
-   - Las peticiones a la API deben apuntar a `https://<URL_DEL_TUNEL>/api/...`, nunca a `http://localhost:3001`.
-   - No deben aparecer errores de `CORS`, `Mixed Content` ni `404` en el prefijo de la API.
-
-El túnel de demostración debe estar activo al hacer estas pruebas. Si se cierra, la interfaz puede cargar, pero las operaciones que dependen de la API fallarán; eso no significa que el deploy de Vercel esté roto.
-
----
-
-## 6. Qué pegar en la sección 3.2 de `BORRADOR_INFORME_IMRD.md`
-
-Sustituye los marcadores por los valores reales obtenidos. Conserva el resto del texto:
+Pegar en la sección 3.2 de `BORRADOR_INFORME_IMRD.md`, sustituyendo el marcador del túnel:
 
 ```markdown
-### 3.2 Publicación y estado real de los componentes
-
-> Decisión tomada: **Ruta B**. El backend y PostgreSQL se ejecutan en **Windows con Docker**; la API se expone mediante un túnel HTTPS de demostración.
-
-- **Frontend:** publicado en `https://<PROYECTO>.vercel.app`.
+- **Frontend:** publicado en `https://rutabol-scz-8ih4.vercel.app`.
 - **Repositorio:** `https://github.com/JohnDG32/Rutabol-scz`.
-- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://<URL_DEL_TUNEL>/api`.
+- **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `https://<URL_DEL_TÚNEL>/api`.
 - **PostgreSQL:** se ejecuta en Docker en Windows, puerto 5433.
 - **Declaración obligatoria:** Vercel publica únicamente la interfaz. La API NestJS y PostgreSQL se ejecutan en el entorno local de Windows; la API es accesible desde la URL pública solo a través del túnel HTTPS de demostración, que se cierra al finalizar la defensa.
 ```
-
-Es decir, pega en **3.2** la URL de Vercel en el campo del frontend y la URL del túnel con `/api` en el campo de la API. Si el borrador también pide el enlace en el **Anexo E**, usa la misma URL de Vercel. No pegues tokens, contraseñas ni URLs con credenciales.
-
----
-
-## 7. Errores comunes
-
-| Síntoma | Causa probable | Solución |
-|---|---|---|
-| `Couldn't find any "pages" or "app" directory` o Vercel busca `package.json` en la raíz | Se desplegó la raíz del monorepo | Configura **Root Directory = `frontend`** y haz **Redeploy**. |
-| `npm ERR! enoent ... package.json` | Install Command ejecutado fuera de `frontend` | Confirma Root Directory `frontend` e Install Command `npm install`. |
-| La web carga, pero pide datos a `localhost:3001` o a una URL anterior | `NEXT_PUBLIC_API_URL` no está en el dashboard o cambió sin rebuild | Añade/corrige la variable en Vercel y haz **Redeploy**. |
-| La variable aparece en el dashboard pero no en el navegador | Las variables `NEXT_PUBLIC_*` se insertan en tiempo de compilación | Edita la variable y vuelve a compilar; no basta con guardar. |
-| `Access-Control-Allow-Origin` / error de CORS en DevTools | NestJS no permite el origen de Vercel o el túnel no reenvía `OPTIONS` | Permite el origen `https://<PROYECTO>.vercel.app`, los métodos usados y `OPTIONS`; verifica el preflight en el túnel. No uses `*` junto con credenciales. |
-| `Mixed Content: ... http://...` | La API está configurada con HTTP en lugar de HTTPS | Usa la URL HTTPS del túnel en `NEXT_PUBLIC_API_URL` y redeploy. |
-| La API deja de responder al cerrar el túnel | Es una demostración, no un servicio público permanente | Déjalo declarado en 3.2; no sustituyas secretos ni expongas la BD para "arreglarlo". |
-| Se desplegó la rama equivocada | Production Branch apunta a otra rama | Cambia **Production Branch** a `rutabol-extras` y haz **Redeploy**. |

@@ -168,7 +168,7 @@ Se completó el proceso principal: alta de líneas y micros, consulta pública, 
 
 > Decisión tomada: **Ruta B**. El backend y PostgreSQL se ejecutan en **Windows con Docker**; la API se expone mediante un túnel HTTPS de demostración.
 
-- **Frontend:** publicado en `[URL DE VERCEL]`.
+- **Frontend:** publicado en `https://rutabol-scz-8ih4.vercel.app`.
 - **Repositorio:** `https://github.com/JohnDG32/Rutabol-scz`.
 - **API NestJS:** se ejecuta en Windows, puerto 3001, bajo el prefijo `/api`, y se expone como `[URL DEL TÚNEL]/api`.
 - **PostgreSQL:** se ejecuta en Docker en Windows, puerto 5433.
