@@ -53,10 +53,30 @@ En este proyecto Cloudflared **solo reenvía al puerto 3001 de NestJS**. Nunca s
 
 ### ¿Hay que instalar más cosas?
 
-No casi nada. Ya tienes Node, Docker, el repo y el backend compilado. Solo falta:
+No casi nada. Ya tienes Node, Docker, el repo, el backend funcionando (comprobado: `http://localhost:3001/api/lineas` → HTTP 200) y **Cloudflared instalado**.
+
+Instalado el 25/11/2026: `cloudflared version 2026.11.2`, ubicado en:
+
+```text
+C:\Program Files (x86)\cloudflared\cloudflared.exe
+```
+
+**Importante:** ese ejecutable no quedó en el PATH de PowerShell, por eso `cloudflared tunnel ...` da “no se reconoce como nombre de un cmdlet”. No es un error de instalación: usa la ruta completa o el script preparado.
+
+### Forma más fácil: script listo
+
+En esta carpeta del repo existe `INICIAR_TUNEL.ps1`. Ejecuta:
 
 ```powershell
-winget install Cloudflare.cloudflared
+powershell -ExecutionPolicy Bypass -File .\INICIAR_TUNEL.ps1
+```
+
+El script verifica la API local y levanta el túnel. Copia la URL `https://....trycloudflare.com` que aparece y déjalo abierto.
+
+### Forma manual
+
+```powershell
+& 'C:\Program Files (x86)\cloudflared\cloudflared.exe' tunnel --url http://localhost:3001
 ```
 
 Opcional, **no necesario** para la entrega: Vercel CLI (`npm i -g vercel`). Todo se puede hacer desde la página web de Vercel.
@@ -108,6 +128,8 @@ rutabol-extras
 y guarda con **Save**.
 
 Esto cambió respecto a guías antiguas: antes se buscaba en `Settings → Git → Production Branch`. En la interfaz actual (documentación de Vercel actualizada el 18 de septiembre de 2026) está en **Environments → Production → Branch Tracking**. No está dentro de Environment Variables, por eso no la encontrabas.
+
+En tu cuenta, dentro de **Settings** aparecen las secciones **Environment** y **Git**. Revisa **Environment → Production → Branch Tracking**. Si no ves Branch Tracking, **no te quedes ahí**: usa la ruta alternativa de abajo, que es más rápida y no depende de ese menú.
 
 **Ruta alternativa si no ves esa pantalla:** **Deployments → Create Deployment → Branch-Based Deployments**, escribes `rutabol-extras` y haces **Create Deployment**. Eso fuerza un build de esa rama sin depender de Branch Tracking.
 
