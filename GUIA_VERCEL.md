@@ -1,6 +1,7 @@
 # Guía actualizada — Publicación en Vercel (Ruta B)
 
 **Estado de esta guía:** ajustada el 25 de noviembre de 2026 a la documentación actual de Vercel y al estado real del proyecto.
+**Fuentes Vercel consultadas:** *Deploying Git Repositories* (actualizado 2026-09-18), *Environment Variables* (2026-09-17), *Deploying to Vercel* (2026-09-03), *Project Configuration* y *General settings* (2026-08-25).
 
 **URL pública del frontend:** `https://rutabol-scz-8ih4.vercel.app`
 **Repo:** `https://github.com/JohnDG32/Rutabol-scz`
@@ -58,7 +59,7 @@ No casi nada. Ya tienes Node, Docker, el repo y el backend compilado. Solo falta
 winget install Cloudflare.cloudflared
 ```
 
-Opcional, **no necesario** para la entrega: Vercel CLI (`npm i -g vercel`). Todo se puede hacer desde la网页 de Vercel.
+Opcional, **no necesario** para la entrega: Vercel CLI (`npm i -g vercel`). Todo se puede hacer desde la página web de Vercel.
 
 No hace falta instalar nada más: no se usa Caddy para el túnel, no se instala Apache/Nginx y no se configura BIND9 para publicar la web.
 
@@ -96,7 +97,7 @@ SESSION_SECRET
 
 En Vercel, entra a tu proyecto y ve a:
 
-**Project Settings → Git → Production Branch**
+**Project Settings → Environments → Production → Branch Tracking**
 
 Pon:
 
@@ -104,7 +105,21 @@ Pon:
 rutabol-extras
 ```
 
-Antes se veía en otra pestaña; en la versión actual está en **Settings → Git**, no dentro de Environment Variables. Si el despliegue ya salió con esa rama, igual conviene verificarlo.
+y guarda con **Save**.
+
+Esto cambió respecto a guías antiguas: antes se buscaba en `Settings → Git → Production Branch`. En la interfaz actual (documentación de Vercel actualizada el 18 de septiembre de 2026) está en **Environments → Production → Branch Tracking**. No está dentro de Environment Variables, por eso no la encontrabas.
+
+**Ruta alternativa si no ves esa pantalla:** **Deployments → Create Deployment → Branch-Based Deployments**, escribes `rutabol-extras` y haces **Create Deployment**. Eso fuerza un build de esa rama sin depender de Branch Tracking.
+
+### 3.1b Root Directory
+
+Verifica también **Project Settings → General → Build and Development Settings → Root Directory**:
+
+```text
+frontend
+```
+
+Si está vacío o en `.`, Vercel busca `package.json` en la raíz y el build falla. Este ajuste se aplica desde el **siguiente deployment**, igual que las variables.
 
 ### 3.2 Variable de entorno
 
@@ -239,7 +254,7 @@ Abre `https://rutabol-scz-8ih4.vercel.app`, inicia sesión con `admin` y revisa 
 | La cookie no se envía | Faltan `COOKIE_SAMESITE=none` y `COOKIE_SECURE=true` | Agregarlas y reiniciar API |
 | `Mixed Content` | La variable usa `http://` | Usar `https://<URL_DEL_TÚNEL>/api` y redesplegar |
 | La API deja de responder | Se cerró la terminal de Cloudflared | Levantar el túnel; si cambió la URL, actualizar variable y redesplegar |
-| Confusión con “Production Branch” | Está en **Settings → Git**, no en Environment Variables | Verificar allí que diga `rutabol-extras` |
+| Confusión con “Production Branch” | Está en **Settings → Environments → Production → Branch Tracking**, no en Git ni en Environment Variables | Verificar allí que diga `rutabol-extras`, o usar **Deployments → Create Deployment → Branch-Based** |
 
 ---
 
