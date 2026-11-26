@@ -4,6 +4,7 @@ import type {
   ResultadoTrasbordo, Tarifa, Usuario, UsuarioGestion, UsuarioInput, Viaje,
 } from './types';
 
+// Ruta B: el valor se inyecta desde NEXT_PUBLIC_API_URL al compilar en Vercel.
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://www.rutabol.test/api';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
